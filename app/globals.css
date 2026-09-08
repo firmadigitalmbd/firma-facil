@@ -84,6 +84,12 @@ button.secondary {
   touch-action: none;
 }
 
+.pdf-view-wrap {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  max-width: 100%;
+}
+
 .sign-box {
   position: absolute;
   border: 2px dashed #2563eb;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
 // Servimos el worker desde el propio dominio (en vez de un CDN externo)
@@ -11,7 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
-const PAGE_WIDTH = 560;
+const MAX_PAGE_WIDTH = 560;
 
 export default function PdfSignatureViewer({
   fileUrl,
@@ -34,17 +34,29 @@ export default function PdfSignatureViewer({
   boxDone: boolean;
   onBoxClick: () => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pageWidth, setPageWidth] = useState(MAX_PAGE_WIDTH);
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(boxPage);
   const [pageSize, setPageSize] = useState({
-    width: PAGE_WIDTH,
-    height: PAGE_WIDTH * 1.41,
+    width: MAX_PAGE_WIDTH,
+    height: MAX_PAGE_WIDTH * 1.41,
   });
 
+  useEffect(() => {
+    function updateWidth() {
+      const available = containerRef.current?.clientWidth || MAX_PAGE_WIDTH;
+      setPageWidth(Math.min(MAX_PAGE_WIDTH, available));
+    }
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   return (
-    <div>
+    <div ref={containerRef}>
       <div
-        className="pdf-page-wrap"
+        className="pdf-view-wrap"
         style={{ width: pageSize.width, height: pageSize.height }}
       >
         <Document
@@ -54,11 +66,11 @@ export default function PdfSignatureViewer({
         >
           <Page
             pageNumber={pageNumber}
-            width={PAGE_WIDTH}
+            width={pageWidth}
             onLoadSuccess={(page) => {
               const viewport = page.getViewport({ scale: 1 });
-              const scale = PAGE_WIDTH / viewport.width;
-              setPageSize({ width: PAGE_WIDTH, height: viewport.height * scale });
+              const scale = pageWidth / viewport.width;
+              setPageSize({ width: pageWidth, height: viewport.height * scale });
             }}
             renderTextLayer={false}
             renderAnnotationLayer={false}
