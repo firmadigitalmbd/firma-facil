@@ -4,9 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Rnd } from "react-rnd";
 
-// Worker de pdf.js servido desde un CDN permitido, para no tener que
-// empaquetarlo manualmente con Next.js.
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Servimos el worker desde el propio dominio (en vez de un CDN externo)
+// porque algunos navegadores integrados (Gmail, etc. en celular) bloquean
+// la carga de workers desde otro origen.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.js",
+  import.meta.url
+).toString();
 
 export type SignatureBox = {
   page: number;

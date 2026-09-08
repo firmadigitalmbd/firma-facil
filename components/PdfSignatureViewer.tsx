@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Servimos el worker desde el propio dominio (en vez de un CDN externo)
+// porque algunos navegadores integrados (Gmail, etc. en celular) bloquean
+// la carga de workers desde otro origen.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.js",
+  import.meta.url
+).toString();
 
 const PAGE_WIDTH = 560;
 
