@@ -39,6 +39,13 @@ export async function POST(
       );
     }
 
+    if (doc.status === "returned") {
+      return NextResponse.json(
+        { error: "Este documento ya fue devuelto sin firmar y el enlace no está disponible." },
+        { status: 410 }
+      );
+    }
+
     if (doc.signed_at) {
       return NextResponse.json({ ok: true, alreadySigned: true });
     }

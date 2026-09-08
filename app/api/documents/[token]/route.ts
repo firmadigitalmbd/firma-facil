@@ -31,6 +31,16 @@ export async function GET(
       );
     }
 
+    if (doc.status === "signed") {
+      return NextResponse.json(
+        {
+          error:
+            "Este enlace ya no está disponible: el documento ya fue firmado. Revisa tu correo para ver la copia firmada.",
+        },
+        { status: 410 }
+      );
+    }
+
     if (!doc.opened_at) {
       await supabase
         .from("documents")
