@@ -110,10 +110,10 @@ export default function ConfiguracionPage() {
           {saved && <div className="success-box">Cambios guardados correctamente.</div>}
 
           <div className="bottom-toolbar">
-            <LogoutButton />
             <button type="button" onClick={handleSave} disabled={saving}>
               {saving ? "Guardando..." : "Guardar cambios"}
             </button>
+            <LogoutButton />
           </div>
         </>
       )}

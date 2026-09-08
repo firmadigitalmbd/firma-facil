@@ -156,10 +156,10 @@ export default function HomePage() {
         )}
 
         <div className="bottom-toolbar">
-          <LogoutButton />
           <button type="submit" disabled={loading}>
             {loading ? "Enviando..." : "Enviar para firma"}
           </button>
+          <LogoutButton />
         </div>
       </form>
     </main>

@@ -41,6 +41,8 @@ export default function SideMenu() {
         <span />
       </button>
 
+      {username && <div className="user-badge">Hola, {username}</div>}
+
       {open && <div className="side-menu-backdrop" onClick={() => setOpen(false)} />}
 
       <nav className={`side-menu${open ? " side-menu-open" : ""}`}>
