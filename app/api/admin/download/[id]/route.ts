@@ -7,10 +7,12 @@ export const runtime = "nodejs";
 // empieza con ninguno de los prefijos públicos del middleware, así que
 // exige usuario/clave automáticamente.
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const view = req.nextUrl.searchParams.get("view") === "1";
+
     const supabase = getSupabaseAdmin();
     const { data: doc, error } = await supabase
       .from("documents")
@@ -31,9 +33,13 @@ export async function GET(
 
     const { data: signedUrlData, error: urlError } = await supabase.storage
       .from(DOCUMENTS_BUCKET)
-      .createSignedUrl(doc.storage_path_signed, 60, {
-        download: doc.original_filename.replace(/\.pdf$/i, "") + "-firmado.pdf",
-      });
+      .createSignedUrl(
+        doc.storage_path_signed,
+        60,
+        view
+          ? undefined
+          : { download: doc.original_filename.replace(/\.pdf$/i, "") + "-firmado.pdf" }
+      );
 
     if (urlError || !signedUrlData) {
       return NextResponse.json(

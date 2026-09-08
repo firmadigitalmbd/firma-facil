@@ -120,13 +120,17 @@ export default function PanelPage() {
                   <td>{formatDate(d.signed_at)}</td>
                   <td>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      {d.status !== "returned" && (
-                        <a href={`/firmar/${d.token}`} target="_blank" rel="noreferrer">
-                          Ver enlace
-                        </a>
-                      )}
                       {d.status === "signed" && (
-                        <a href={`/api/admin/download/${d.id}`}>Descargar</a>
+                        <>
+                          <a
+                            href={`/api/admin/download/${d.id}?view=1`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Ver
+                          </a>
+                          <a href={`/api/admin/download/${d.id}`}>Descargar</a>
+                        </>
                       )}
                       {d.status !== "signed" && (
                         <button
