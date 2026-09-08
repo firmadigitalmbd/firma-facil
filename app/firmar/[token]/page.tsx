@@ -57,7 +57,7 @@ export default function FirmarPage({
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/documents/${params.token}`);
+      const res = await fetch(`/api/documents/${params.token}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo cargar el documento.");
       setDoc(data.document);

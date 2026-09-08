@@ -4,6 +4,12 @@ import { getSupabaseAdmin, DOCUMENTS_BUCKET } from "@/lib/supabaseAdmin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { "Cache-Control": "no-store, no-cache, must-revalidate" };
+
+function json(body: any, status = 200) {
+  return NextResponse.json(body, { status, headers: NO_STORE });
+}
+
 // Devuelve la información pública del documento a partir del token del
 // enlace de firma, y marca la primera vez que se abre.
 export async function GET(
@@ -19,26 +25,23 @@ export async function GET(
       .single();
 
     if (error || !doc) {
-      return NextResponse.json(
-        { error: "Documento no encontrado." },
-        { status: 404 }
-      );
+      return json({ error: "Documento no encontrado." }, 404);
     }
 
     if (doc.status === "returned") {
-      return NextResponse.json(
+      return json(
         { error: "Este enlace ya no está disponible: el documento fue devuelto sin firmar." },
-        { status: 410 }
+        410
       );
     }
 
     if (doc.status === "signed") {
-      return NextResponse.json(
+      return json(
         {
           error:
             "Este enlace ya no está disponible: el documento ya fue firmado. Revisa tu correo para ver la copia firmada.",
         },
-        { status: 410 }
+        410
       );
     }
 
@@ -60,10 +63,7 @@ export async function GET(
       .createSignedUrl(path, 60 * 60); // 1 hora
 
     if (urlError) {
-      return NextResponse.json(
-        { error: `No se pudo generar el enlace del archivo: ${urlError.message}` },
-        { status: 500 }
-      );
+      return json({ error: `No se pudo generar el enlace del archivo: ${urlError.message}` }, 500);
     }
 
     const { data: legalTexts } = await supabase
@@ -72,7 +72,7 @@ export async function GET(
       .eq("id", 1)
       .single();
 
-    return NextResponse.json({
+    return json({
       document: {
         originalFilename: doc.original_filename,
         recipientName: doc.recipient_name,
@@ -90,9 +90,6 @@ export async function GET(
       fileUrl: signedUrlData.signedUrl,
     });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Error inesperado." },
-      { status: 500 }
-    );
+    return json({ error: err.message || "Error inesperado." }, 500);
   }
 }

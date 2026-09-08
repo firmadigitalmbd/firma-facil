@@ -84,8 +84,10 @@ export default function HomePage() {
 
   return (
     <main className="page">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.jpg" alt="Más Baratas Droguerías" className="brand-logo" />
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
-        <h1>Firma Fácil</h1>
+        <h1>Más Baratas Droguerías - Firma de documentos</h1>
         <Link href="/panel">Ver documentos enviados →</Link>
       </div>
 
