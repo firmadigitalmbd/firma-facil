@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type DocRow = {
@@ -8,6 +8,7 @@ type DocRow = {
   created_at: string;
   original_filename: string;
   recipient_name: string;
+  recipient_cedula: string;
   recipient_email: string;
   token: string;
   opened_at: string | null;
@@ -23,11 +24,15 @@ const STATUS_LABEL: Record<DocRow["status"], string> = {
   returned: "Devuelto",
 };
 
+const PAGE_SIZE = 10;
+
 export default function PanelPage() {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     load();
@@ -69,6 +74,23 @@ export default function PanelPage() {
     }
   }
 
+  const filteredDocs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return docs;
+    return docs.filter((d) =>
+      [d.original_filename, d.recipient_name, d.recipient_cedula, d.recipient_email]
+        .filter(Boolean)
+        .some((field) => field.toLowerCase().includes(q))
+    );
+  }, [docs, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredDocs.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageDocs = filteredDocs.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   return (
     <main className="page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
@@ -79,76 +101,117 @@ export default function PanelPage() {
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
+        <input
+          type="text"
+          placeholder="Buscar por documento, nombre, cédula o correo..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          style={{ marginBottom: 16 }}
+        />
+
         {loading ? (
           <p>Cargando...</p>
         ) : docs.length === 0 ? (
           <p>Todavía no has enviado ningún documento.</p>
+        ) : filteredDocs.length === 0 ? (
+          <p>No se encontraron documentos que coincidan con la búsqueda.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Documento</th>
-                <th>Firmante</th>
-                <th>Estado</th>
-                <th>Enviado</th>
-                <th>Abierto</th>
-                <th>Firmado</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {docs.map((d) => (
-                <tr key={d.id}>
-                  <td>{d.original_filename}</td>
-                  <td>
-                    {d.recipient_name}
-                    <br />
-                    <span className="hint">{d.recipient_email}</span>
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${d.status}`}>
-                      {STATUS_LABEL[d.status]}
-                    </span>
-                    {d.status === "returned" && d.return_reason && (
-                      <div className="hint" style={{ maxWidth: 220 }}>
-                        {d.return_reason}
-                      </div>
-                    )}
-                  </td>
-                  <td>{formatDate(d.created_at)}</td>
-                  <td>{formatDate(d.opened_at)}</td>
-                  <td>{formatDate(d.signed_at)}</td>
-                  <td>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      {d.status === "signed" && (
-                        <>
-                          <a
-                            href={`/api/admin/download/${d.id}?view=1`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Ver
-                          </a>
-                          <a href={`/api/admin/download/${d.id}`}>Descargar</a>
-                        </>
-                      )}
-                      {d.status !== "signed" && (
-                        <button
-                          type="button"
-                          className="secondary"
-                          style={{ padding: "4px 10px", fontSize: 13 }}
-                          disabled={deletingId === d.id}
-                          onClick={() => handleDelete(d.id)}
-                        >
-                          {deletingId === d.id ? "Eliminando..." : "Eliminar"}
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          <>
+            <table>
+              <thead>
+                <tr>
+                  <th>Documento</th>
+                  <th>Firmante</th>
+                  <th>Estado</th>
+                  <th>Enviado</th>
+                  <th>Abierto</th>
+                  <th>Firmado</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pageDocs.map((d) => (
+                  <tr key={d.id}>
+                    <td>{d.original_filename}</td>
+                    <td>
+                      {d.recipient_name}
+                      <br />
+                      <span className="hint">
+                        CC {d.recipient_cedula} · {d.recipient_email}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge status-${d.status}`}>
+                        {STATUS_LABEL[d.status]}
+                      </span>
+                      {d.status === "returned" && d.return_reason && (
+                        <div className="hint" style={{ maxWidth: 220 }}>
+                          {d.return_reason}
+                        </div>
+                      )}
+                    </td>
+                    <td>{formatDate(d.created_at)}</td>
+                    <td>{formatDate(d.opened_at)}</td>
+                    <td>{formatDate(d.signed_at)}</td>
+                    <td>
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        {d.status === "signed" && (
+                          <>
+                            <a
+                              href={`/api/admin/download/${d.id}?view=1`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Ver
+                            </a>
+                            <a href={`/api/admin/download/${d.id}`}>Descargar</a>
+                          </>
+                        )}
+                        {d.status !== "signed" && (
+                          <button
+                            type="button"
+                            className="secondary"
+                            style={{ padding: "4px 10px", fontSize: 13 }}
+                            disabled={deletingId === d.id}
+                            onClick={() => handleDelete(d.id)}
+                          >
+                            {deletingId === d.id ? "Eliminando..." : "Eliminar"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {totalPages > 1 && (
+              <div className="toolbar">
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  ← Anterior
+                </button>
+                <span>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Siguiente →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

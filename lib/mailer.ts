@@ -33,7 +33,7 @@ export async function sendMail(opts: {
   attachments?: Attachment[];
 }) {
   const transporter = getTransporter();
-  const fromName = process.env.MAIL_FROM_NAME || "Firma Fácil";
+  const fromName = process.env.MAIL_FROM_NAME || "Más Baratas Droguerías";
   const fromEmail = process.env.MAIL_FROM_EMAIL || process.env.SMTP_USER;
 
   await transporter.sendMail({
@@ -45,6 +45,12 @@ export async function sendMail(opts: {
   });
 }
 
+function logoHtml() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) return "";
+  return `<img src="${appUrl}/logo.jpg" alt="Más Baratas Droguerías" style="max-width:200px;margin-bottom:16px;" />`;
+}
+
 export function linkEmailHtml(params: {
   recipientName: string;
   documentName: string;
@@ -52,14 +58,15 @@ export function linkEmailHtml(params: {
 }) {
   return `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+    ${logoHtml()}
     <h2 style="margin-bottom: 8px;">Tienes un documento para firmar</h2>
     <p>Hola ${escapeHtml(params.recipientName)},</p>
-    <p>Te han enviado el documento <strong>${escapeHtml(
+    <p><strong>Más Baratas Droguerías</strong> te envió el documento <strong>${escapeHtml(
       params.documentName
     )}</strong> para tu firma.</p>
     <p style="margin: 24px 0;">
       <a href="${params.signUrl}"
-         style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
+         style="background:#e4032e;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
         Ver y firmar documento
       </a>
     </p>
@@ -82,6 +89,7 @@ export function signedEmailHtml(params: {
 
   return `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+    ${logoHtml()}
     <h2 style="margin-bottom: 8px;">Documento firmado</h2>
     <p>${intro}</p>
     <p style="font-size:13px;color:#666;">Documento: ${escapeHtml(
@@ -99,6 +107,7 @@ export function returnedEmailHtml(params: {
 }) {
   return `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+    ${logoHtml()}
     <h2 style="margin-bottom: 8px;">Un documento fue devuelto sin firmar</h2>
     <p><strong>${escapeHtml(params.recipientName)}</strong> (${escapeHtml(
       params.recipientEmail

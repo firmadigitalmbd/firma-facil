@@ -169,6 +169,8 @@ export default function FirmarPage({
 
   return (
     <main className="page">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.jpg" alt="Más Baratas Droguerías" className="brand-logo" />
       <h1>Firmar documento</h1>
       <p>
         Hola {doc.recipientName}, revisa el documento <strong>{doc.originalFilename}</strong>.

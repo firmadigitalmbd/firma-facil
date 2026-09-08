@@ -19,7 +19,8 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successUrl, setSuccessUrl] = useState("");
+  const [sentTo, setSentTo] = useState("");
+  const [failedSignUrl, setFailedSignUrl] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -61,8 +62,14 @@ export default function HomePage() {
         throw new Error(data.error || "No se pudo enviar el documento.");
       }
 
-      setSuccessUrl(data.signUrl);
-      if (data.warning) setError(data.warning);
+      if (data.warning) {
+        setError(data.warning);
+        setFailedSignUrl(data.signUrl);
+        setSentTo("");
+      } else {
+        setSentTo(email);
+        setFailedSignUrl("");
+      }
       setFile(null);
       setBox(null);
       setName("");
@@ -115,8 +122,9 @@ export default function HomePage() {
           <label>Cédula</label>
           <input
             type="text"
+            inputMode="numeric"
             value={cedula}
-            onChange={(e) => setCedula(e.target.value)}
+            onChange={(e) => setCedula(e.target.value.replace(/\D/g, ""))}
             placeholder="Ej: 1234567890"
           />
           <label>Correo electrónico</label>
@@ -128,13 +136,24 @@ export default function HomePage() {
           />
         </div>
 
-        {error && <div className="error-box">{error}</div>}
-        {successUrl && (
+        {error && (
+          <div className="error-box">
+            {error}
+            {failedSignUrl && (
+              <>
+                {" "}
+                Enlace de firma (cópialo y envíalo manualmente):{" "}
+                <a href={failedSignUrl} target="_blank" rel="noreferrer">
+                  {failedSignUrl}
+                </a>
+              </>
+            )}
+          </div>
+        )}
+        {sentTo && (
           <div className="success-box">
-            Documento enviado correctamente. Enlace de firma:{" "}
-            <a href={successUrl} target="_blank" rel="noreferrer">
-              {successUrl}
-            </a>
+            Documento enviado correctamente. Se envió un correo con el enlace de firma a{" "}
+            {sentTo}.
           </div>
         )}
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin, DOCUMENTS_BUCKET } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // Devuelve la información pública del documento a partir del token del
 // enlace de firma, y marca la primera vez que se abre.

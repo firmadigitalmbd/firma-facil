@@ -4,6 +4,7 @@ import { getSupabaseAdmin, DOCUMENTS_BUCKET } from "@/lib/supabaseAdmin";
 import { sendMail, linkEmailHtml } from "@/lib/mailer";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // Crea un documento: sube el PDF original, guarda el registro en la
 // base de datos y envía el correo con el enlace de firma.
@@ -112,7 +113,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("documents")
       .select(
-        "id, created_at, original_filename, recipient_name, recipient_email, token, opened_at, signed_at, status, return_reason"
+        "id, created_at, original_filename, recipient_name, recipient_cedula, recipient_email, token, opened_at, signed_at, status, return_reason"
       )
       .order("created_at", { ascending: false });
 

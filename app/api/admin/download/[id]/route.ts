@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin, DOCUMENTS_BUCKET } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // Descarga del PDF firmado desde el panel. Ruta solo para admin: no
 // empieza con ninguno de los prefijos públicos del middleware, así que

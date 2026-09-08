@@ -2,8 +2,8 @@ import "./globals.css";
 import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "Firma Fácil",
-  description: "Envía documentos para firma electrónica de forma sencilla",
+  title: "Más Baratas Droguerías - Firma de documentos",
+  description: "Firma electrónica de documentos de Más Baratas Droguerías",
 };
 
 export default function RootLayout({
