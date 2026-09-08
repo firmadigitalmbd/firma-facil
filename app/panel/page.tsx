@@ -12,19 +12,22 @@ type DocRow = {
   token: string;
   opened_at: string | null;
   signed_at: string | null;
-  status: "sent" | "opened" | "signed";
+  status: "sent" | "opened" | "signed" | "returned";
+  return_reason: string | null;
 };
 
 const STATUS_LABEL: Record<DocRow["status"], string> = {
   sent: "Enviado",
   opened: "Abierto",
   signed: "Firmado",
+  returned: "Devuelto",
 };
 
 export default function PanelPage() {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     load();
@@ -41,6 +44,28 @@ export default function PanelPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("¿Eliminar este documento? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    setError("");
+    setDeletingId(id);
+    try {
+      const res = await fetch("/api/documents", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo eliminar el documento.");
+      setDocs((prev) => prev.filter((d) => d.id !== id));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDeletingId("");
     }
   }
 
@@ -84,18 +109,37 @@ export default function PanelPage() {
                     <span className={`status-badge status-${d.status}`}>
                       {STATUS_LABEL[d.status]}
                     </span>
+                    {d.status === "returned" && d.return_reason && (
+                      <div className="hint" style={{ maxWidth: 220 }}>
+                        {d.return_reason}
+                      </div>
+                    )}
                   </td>
                   <td>{formatDate(d.created_at)}</td>
                   <td>{formatDate(d.opened_at)}</td>
                   <td>{formatDate(d.signed_at)}</td>
                   <td>
-                    <a
-                      href={`/firmar/${d.token}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Ver enlace
-                    </a>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      {d.status !== "returned" && (
+                        <a href={`/firmar/${d.token}`} target="_blank" rel="noreferrer">
+                          Ver enlace
+                        </a>
+                      )}
+                      {d.status === "signed" && (
+                        <a href={`/api/admin/download/${d.id}`}>Descargar</a>
+                      )}
+                      {d.status !== "signed" && (
+                        <button
+                          type="button"
+                          className="secondary"
+                          style={{ padding: "4px 10px", fontSize: 13 }}
+                          disabled={deletingId === d.id}
+                          onClick={() => handleDelete(d.id)}
+                        >
+                          {deletingId === d.id ? "Eliminando..." : "Eliminar"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

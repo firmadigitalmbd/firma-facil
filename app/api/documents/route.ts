@@ -112,7 +112,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("documents")
       .select(
-        "id, created_at, original_filename, recipient_name, recipient_email, token, opened_at, signed_at, status"
+        "id, created_at, original_filename, recipient_name, recipient_email, token, opened_at, signed_at, status, return_reason"
       )
       .order("created_at", { ascending: false });
 
@@ -121,6 +121,52 @@ export async function GET() {
     }
 
     return NextResponse.json({ documents: data });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Error inesperado." },
+      { status: 500 }
+    );
+  }
+}
+
+// Borra un documento sin firmar (registro + archivo original en Storage).
+// Solo accesible por el admin (esta ruta exacta está protegida por el
+// middleware, a diferencia de /api/documents/[token] que es pública).
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: "Falta el id del documento." }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data: doc, error: fetchError } = await supabase
+      .from("documents")
+      .select("id, status, storage_path_original")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !doc) {
+      return NextResponse.json({ error: "Documento no encontrado." }, { status: 404 });
+    }
+
+    if (doc.status === "signed") {
+      return NextResponse.json(
+        { error: "No se puede eliminar un documento ya firmado." },
+        { status: 400 }
+      );
+    }
+
+    if (doc.storage_path_original) {
+      await supabase.storage.from(DOCUMENTS_BUCKET).remove([doc.storage_path_original]);
+    }
+
+    const { error: deleteError } = await supabase.from("documents").delete().eq("id", id);
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Error inesperado." },

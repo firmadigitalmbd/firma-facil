@@ -91,6 +91,26 @@ export function signedEmailHtml(params: {
   `;
 }
 
+export function returnedEmailHtml(params: {
+  recipientName: string;
+  recipientEmail: string;
+  documentName: string;
+  reason: string;
+}) {
+  return `
+  <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+    <h2 style="margin-bottom: 8px;">Un documento fue devuelto sin firmar</h2>
+    <p><strong>${escapeHtml(params.recipientName)}</strong> (${escapeHtml(
+      params.recipientEmail
+    )}) devolvió el documento <strong>${escapeHtml(params.documentName)}</strong> sin firmarlo.</p>
+    <p style="font-size: 13px; color: #666;">Motivo indicado:</p>
+    <p style="background:#f4f5f7;padding:12px 14px;border-radius:8px;">${escapeHtml(
+      params.reason
+    )}</p>
+  </div>
+  `;
+}
+
 function escapeHtml(s: string) {
   return s
     .replace(/&/g, "&amp;")

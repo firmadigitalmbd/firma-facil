@@ -24,6 +24,7 @@ type DocInfo = {
   status: string;
   dataConsentText: string;
   signatureConsentText: string;
+  dataPolicyFullText: string;
 };
 
 export default function FirmarPage({
@@ -37,10 +38,16 @@ export default function FirmarPage({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [returned, setReturned] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [returning, setReturning] = useState(false);
   const [dataConsent, setDataConsent] = useState(false);
   const [signatureConsent, setSignatureConsent] = useState(false);
-  const padRef = useRef<SignaturePadHandle>(null);
+  const padRef = useRef<SignaturePadHandle | null>(null);
+  const consentCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     load();
@@ -66,6 +73,7 @@ export default function FirmarPage({
     if (alreadySigned) return;
     if (!dataConsent || !signatureConsent) {
       setError("Debes aceptar los dos consentimientos antes de firmar.");
+      consentCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     setError("");
@@ -74,8 +82,6 @@ export default function FirmarPage({
 
   async function handleSign() {
     setError("");
-    console.log("[debug] padRef.current:", padRef.current);
-    console.log("[debug] isEmpty:", padRef.current?.isEmpty());
     if (!padRef.current || padRef.current.isEmpty()) {
       setError("Dibuja tu firma antes de continuar.");
       return;
@@ -105,6 +111,30 @@ export default function FirmarPage({
     }
   }
 
+  async function handleReturn() {
+    if (!returnReason.trim()) {
+      setError("Escribe el motivo antes de enviar.");
+      return;
+    }
+    setError("");
+    setReturning(true);
+    try {
+      const res = await fetch(`/api/return/${params.token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: returnReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo devolver el documento.");
+      setShowReturnModal(false);
+      setReturned(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setReturning(false);
+    }
+  }
+
   if (loading) {
     return (
       <main className="page">
@@ -124,6 +154,18 @@ export default function FirmarPage({
   if (!doc) return null;
 
   const alreadySigned = !!doc.signedAt || done;
+
+  if (returned) {
+    return (
+      <main className="page">
+        <h1>Documento devuelto</h1>
+        <div className="success-box">
+          Devolviste este documento sin firmar. Ya avisamos a quien te lo envió. Gracias por tu
+          observación.
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="page">
@@ -155,7 +197,7 @@ export default function FirmarPage({
           Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
         </div>
       ) : (
-        <div className="card">
+        <div className="card" ref={consentCardRef}>
           <h2>Antes de firmar</h2>
           <label className="consent-check">
             <input
@@ -163,7 +205,19 @@ export default function FirmarPage({
               checked={dataConsent}
               onChange={(e) => setDataConsent(e.target.checked)}
             />
-            <span>{doc.dataConsentText}</span>
+            <span>
+              {doc.dataConsentText}{" "}
+              <button
+                type="button"
+                className="link-btn"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowPolicyModal(true);
+                }}
+              >
+                Ver política
+              </button>
+            </span>
           </label>
           <label className="consent-check">
             <input
@@ -176,17 +230,26 @@ export default function FirmarPage({
           <p className="hint">
             Marca los dos casilleros y luego toca el recuadro de firma sobre el documento.
           </p>
+          <div className="toolbar">
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setShowReturnModal(true)}
+            >
+              No quiero firmar / Devolver documento
+            </button>
+          </div>
         </div>
       )}
 
-      {error && !showModal && <div className="error-box">{error}</div>}
+      {error && !showModal && !showReturnModal && <div className="error-box">{error}</div>}
 
       {showModal && (
         <div className="modal-backdrop" onClick={() => !submitting && setShowModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h2>Tu firma</h2>
             <p className="hint">Dibuja tu firma con el dedo (celular) o el mouse (computador).</p>
-            <SignaturePad ref={padRef} />
+            <SignaturePad onReady={(handle) => (padRef.current = handle)} />
             <div className="toolbar">
               <button
                 type="button"
@@ -195,8 +258,66 @@ export default function FirmarPage({
               >
                 Borrar
               </button>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setShowModal(false)}
+                disabled={submitting}
+              >
+                Cerrar
+              </button>
               <button type="button" onClick={handleSign} disabled={submitting}>
                 {submitting ? "Firmando..." : "Firmar y enviar"}
+              </button>
+            </div>
+            {error && <div className="error-box">{error}</div>}
+          </div>
+        </div>
+      )}
+
+      {showPolicyModal && (
+        <div className="modal-backdrop" onClick={() => setShowPolicyModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2>Política de tratamiento de datos</h2>
+            <p style={{ whiteSpace: "pre-wrap", fontSize: 14 }}>{doc.dataPolicyFullText}</p>
+            <div className="toolbar">
+              <button type="button" onClick={() => setShowPolicyModal(false)}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReturnModal && (
+        <div
+          className="modal-backdrop"
+          onClick={() => !returning && setShowReturnModal(false)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2>Devolver documento sin firmar</h2>
+            <p className="hint">
+              Cuéntanos por qué no vas a firmar este documento. Se le avisará a quien te lo
+              envió, y este enlace dejará de funcionar.
+            </p>
+            <label>Motivo</label>
+            <textarea
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+              rows={4}
+              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
+            />
+            <div className="toolbar">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setShowReturnModal(false)}
+                disabled={returning}
+              >
+                Cancelar
+              </button>
+              <button type="button" onClick={handleReturn} disabled={returning}>
+                {returning ? "Enviando..." : "Enviar y devolver"}
               </button>
             </div>
             {error && <div className="error-box">{error}</div>}

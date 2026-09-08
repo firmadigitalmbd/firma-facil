@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { useEffect, useRef } from "react";
 import SignaturePadLib from "signature_pad";
 
 export type SignaturePadHandle = {
@@ -9,7 +9,14 @@ export type SignaturePadHandle = {
   toDataUrl: () => string;
 };
 
-const SignaturePad = forwardRef<SignaturePadHandle>((_props, ref) => {
+// No usamos forwardRef/useImperativeHandle aquí porque next/dynamic con
+// ssr:false no reenvía refs de forma confiable; en su lugar avisamos al
+// padre con un callback cuando el pad está listo.
+export default function SignaturePad({
+  onReady,
+}: {
+  onReady: (handle: SignaturePadHandle) => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const padRef = useRef<SignaturePadLib | null>(null);
 
@@ -34,18 +41,16 @@ const SignaturePad = forwardRef<SignaturePadHandle>((_props, ref) => {
 
     resize();
     window.addEventListener("resize", resize);
+
+    onReady({
+      clear: () => padRef.current?.clear(),
+      isEmpty: () => padRef.current?.isEmpty() ?? true,
+      toDataUrl: () => padRef.current?.toDataURL("image/png") ?? "",
+    });
+
     return () => window.removeEventListener("resize", resize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useImperativeHandle(ref, () => ({
-    clear: () => padRef.current?.clear(),
-    isEmpty: () => padRef.current?.isEmpty() ?? true,
-    toDataUrl: () => padRef.current?.toDataURL("image/png") ?? "",
-  }));
-
   return <canvas ref={canvasRef} className="signature-canvas" />;
-});
-
-SignaturePad.displayName = "SignaturePad";
-
-export default SignaturePad;
+}

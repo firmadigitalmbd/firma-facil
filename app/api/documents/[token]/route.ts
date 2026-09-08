@@ -24,6 +24,13 @@ export async function GET(
       );
     }
 
+    if (doc.status === "returned") {
+      return NextResponse.json(
+        { error: "Este enlace ya no está disponible: el documento fue devuelto sin firmar." },
+        { status: 410 }
+      );
+    }
+
     if (!doc.opened_at) {
       await supabase
         .from("documents")
@@ -50,7 +57,7 @@ export async function GET(
 
     const { data: legalTexts } = await supabase
       .from("legal_texts")
-      .select("data_consent_text, signature_consent_text")
+      .select("data_consent_text, signature_consent_text, data_policy_full_text")
       .eq("id", 1)
       .single();
 
@@ -67,6 +74,7 @@ export async function GET(
         status: doc.status,
         dataConsentText: legalTexts?.data_consent_text || "",
         signatureConsentText: legalTexts?.signature_consent_text || "",
+        dataPolicyFullText: legalTexts?.data_policy_full_text || "",
       },
       fileUrl: signedUrlData.signedUrl,
     });

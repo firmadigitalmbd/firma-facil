@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Rutas públicas: el enlace que recibe la persona que firma, y las
 // llamadas de API que ese enlace necesita. Todo lo demás (la pantalla
 // de envío y el panel) queda protegido con usuario/clave.
-const PUBLIC_PREFIXES = ["/firmar", "/api/documents/", "/api/sign"];
+const PUBLIC_PREFIXES = ["/firmar", "/api/documents/", "/api/sign", "/api/return"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
