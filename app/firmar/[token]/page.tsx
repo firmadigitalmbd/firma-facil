@@ -74,6 +74,8 @@ export default function FirmarPage({
 
   async function handleSign() {
     setError("");
+    console.log("[debug] padRef.current:", padRef.current);
+    console.log("[debug] isEmpty:", padRef.current?.isEmpty());
     if (!padRef.current || padRef.current.isEmpty()) {
       setError("Dibuja tu firma antes de continuar.");
       return;
