@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { SignatureBox } from "@/components/PdfSignaturePlacer";
+import LogoutButton from "@/components/LogoutButton";
 
 // react-pdf usa el DOM del navegador, así que se carga solo en cliente.
 const PdfSignaturePlacer = dynamic(
@@ -86,22 +87,22 @@ export default function HomePage() {
     <main className="page">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/logo.jpg" alt="Más Baratas Droguerías" className="brand-logo" />
-      <div className="toolbar" style={{ justifyContent: "space-between" }}>
-        <h1>Más Baratas Droguerías - Firma de documentos</h1>
-        <div className="toolbar" style={{ marginTop: 0 }}>
-          <Link href="/panel">Ver documentos enviados →</Link>
-          <button
-            type="button"
-            className="secondary"
-            onClick={async () => {
-              await fetch("/api/logout", { method: "POST" });
-              window.location.href = "/login";
-            }}
-          >
-            Cerrar sesión
-          </button>
-        </div>
+      <h1>Más Baratas Droguerías - Firma de documentos</h1>
+      <p className="module-caption">Sube un documento, ubica la firma y envíalo para firma.</p>
+
+      <div className="hub-buttons">
+        <Link href="/panel" className="btn-link">
+          Ver todos
+        </Link>
+        <Link href="/panel/firmados" className="btn-link">
+          Firmados
+        </Link>
+        <Link href="/configuracion" className="btn-link">
+          Config.
+        </Link>
       </div>
+
+      <LogoutButton />
 
       <form onSubmit={handleSubmit}>
         <div className="card">

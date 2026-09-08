@@ -105,6 +105,24 @@ button.secondary {
   color: #1a1a1a;
 }
 
+.btn-link {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.btn-link.secondary {
+  background: #e5e7eb;
+  color: #1a1a1a;
+}
+
 .pdf-page-wrap {
   position: relative;
   display: inline-block;
@@ -303,6 +321,29 @@ td {
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.logout-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 40;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.hub-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  margin-bottom: 28px;
+}
+
+.module-caption {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: -8px;
+  margin-bottom: 16px;
 }
 
 .login-page {

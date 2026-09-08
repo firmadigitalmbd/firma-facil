@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 type DocRow = {
   id: string;
@@ -74,11 +75,6 @@ export default function PanelPage() {
     }
   }
 
-  async function handleLogout() {
-    await fetch("/api/logout", { method: "POST" });
-    window.location.href = "/login";
-  }
-
   const filteredDocs = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return docs;
@@ -100,15 +96,15 @@ export default function PanelPage() {
     <main className="page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
         <h1>Documentos enviados</h1>
-        <div className="toolbar" style={{ marginTop: 0 }}>
-          <Link href="/">← Enviar nuevo documento</Link>
-          <Link href="/panel/firmados">Documentos firmados</Link>
-          <Link href="/configuracion">Configuración</Link>
-          <button type="button" className="secondary" onClick={handleLogout}>
-            Cerrar sesión
-          </button>
-        </div>
+        <Link href="/" className="btn-link secondary">
+          Volver
+        </Link>
       </div>
+      <p className="module-caption">
+        Aquí puedes ver el estado de todos los documentos que has enviado para firma.
+      </p>
+
+      <LogoutButton />
 
       {error && <div className="error-box">{error}</div>}
 

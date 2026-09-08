@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 type DocRow = {
   id: string;
@@ -110,13 +111,17 @@ export default function DocumentosFirmadosPage() {
     <main className="page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
         <h1>Documentos firmados</h1>
-        <Link href="/panel">← Volver al panel</Link>
+        <Link href="/" className="btn-link secondary">
+          Volver
+        </Link>
       </div>
-      <p className="hint">
+      <p className="module-caption">
         Aquí puedes borrar documentos ya firmados para liberar espacio de almacenamiento. Al
         borrarlos se elimina el registro y los archivos (original y firmado) de forma
         permanente.
       </p>
+
+      <LogoutButton />
 
       {error && <div className="error-box">{error}</div>}
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function ConfiguracionPage() {
   const [dataConsentText, setDataConsentText] = useState("");
@@ -56,8 +57,16 @@ export default function ConfiguracionPage() {
     <main className="page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
         <h1>Configuración legal</h1>
-        <Link href="/panel">← Volver al panel</Link>
+        <Link href="/" className="btn-link secondary">
+          Volver
+        </Link>
       </div>
+      <p className="module-caption">
+        Aquí puedes editar los textos legales (checks y política de datos) que ve el firmante
+        antes de firmar, sin tocar Supabase.
+      </p>
+
+      <LogoutButton />
 
       {loading ? (
         <p>Cargando...</p>
