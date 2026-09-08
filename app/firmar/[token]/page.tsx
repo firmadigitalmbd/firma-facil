@@ -7,6 +7,10 @@ import type { SignaturePadHandle } from "@/components/SignaturePad";
 const SignaturePad = dynamic(() => import("@/components/SignaturePad"), {
   ssr: false,
 });
+const PdfSignatureViewer = dynamic(
+  () => import("@/components/PdfSignatureViewer"),
+  { ssr: false }
+);
 
 type DocInfo = {
   originalFilename: string;
@@ -18,6 +22,8 @@ type DocInfo = {
   boxHeight: number;
   signedAt: string | null;
   status: string;
+  dataConsentText: string;
+  signatureConsentText: string;
 };
 
 export default function FirmarPage({
@@ -31,6 +37,9 @@ export default function FirmarPage({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [dataConsent, setDataConsent] = useState(false);
+  const [signatureConsent, setSignatureConsent] = useState(false);
   const padRef = useRef<SignaturePadHandle>(null);
 
   useEffect(() => {
@@ -53,6 +62,16 @@ export default function FirmarPage({
     }
   }
 
+  function handleBoxClick() {
+    if (alreadySigned) return;
+    if (!dataConsent || !signatureConsent) {
+      setError("Debes aceptar los dos consentimientos antes de firmar.");
+      return;
+    }
+    setError("");
+    setShowModal(true);
+  }
+
   async function handleSign() {
     setError("");
     if (!padRef.current || padRef.current.isEmpty()) {
@@ -66,11 +85,16 @@ export default function FirmarPage({
       const res = await fetch(`/api/sign/${params.token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signaturePngBase64: signatureDataUrl }),
+        body: JSON.stringify({
+          signaturePngBase64: signatureDataUrl,
+          dataConsentAccepted: dataConsent,
+          signatureConsentAccepted: signatureConsent,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo firmar el documento.");
       if (data.warning) setError(data.warning);
+      setShowModal(false);
       setDone(true);
     } catch (err: any) {
       setError(err.message);
@@ -103,46 +127,78 @@ export default function FirmarPage({
     <main className="page">
       <h1>Firmar documento</h1>
       <p>
-        Hola {doc.recipientName}, revisa el documento <strong>{doc.originalFilename}</strong> y
-        firma al final de esta página.
+        Hola {doc.recipientName}, revisa el documento <strong>{doc.originalFilename}</strong>.
+        {!alreadySigned && " Cuando estés listo, toca el recuadro de firma sobre el documento."}
       </p>
 
       <div className="card">
         <h2>Documento</h2>
         {fileUrl && (
-          <iframe
-            src={fileUrl}
-            title="Documento"
-            style={{ width: "100%", height: 500, border: "1px solid #e5e7eb", borderRadius: 8 }}
+          <PdfSignatureViewer
+            fileUrl={fileUrl}
+            boxPage={doc.boxPage}
+            boxX={doc.boxX}
+            boxY={doc.boxY}
+            boxWidth={doc.boxWidth}
+            boxHeight={doc.boxHeight}
+            boxDisabled={!dataConsent || !signatureConsent}
+            boxDone={alreadySigned}
+            onBoxClick={handleBoxClick}
           />
         )}
       </div>
 
       {alreadySigned ? (
-        <>
-          <div className="success-box">
-            Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
-          </div>
-          {error && <div className="error-box">{error}</div>}
-        </>
+        <div className="success-box">
+          Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
+        </div>
       ) : (
         <div className="card">
-          <h2>Tu firma</h2>
-          <p className="hint">Dibuja tu firma con el dedo (celular) o el mouse (computador).</p>
-          <SignaturePad ref={padRef} />
-          <div className="toolbar">
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => padRef.current?.clear()}
-            >
-              Borrar
-            </button>
-            <button type="button" onClick={handleSign} disabled={submitting}>
-              {submitting ? "Firmando..." : "Firmar y enviar"}
-            </button>
+          <h2>Antes de firmar</h2>
+          <label className="consent-check">
+            <input
+              type="checkbox"
+              checked={dataConsent}
+              onChange={(e) => setDataConsent(e.target.checked)}
+            />
+            <span>{doc.dataConsentText}</span>
+          </label>
+          <label className="consent-check">
+            <input
+              type="checkbox"
+              checked={signatureConsent}
+              onChange={(e) => setSignatureConsent(e.target.checked)}
+            />
+            <span>{doc.signatureConsentText}</span>
+          </label>
+          <p className="hint">
+            Marca los dos casilleros y luego toca el recuadro de firma sobre el documento.
+          </p>
+        </div>
+      )}
+
+      {error && !showModal && <div className="error-box">{error}</div>}
+
+      {showModal && (
+        <div className="modal-backdrop" onClick={() => !submitting && setShowModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2>Tu firma</h2>
+            <p className="hint">Dibuja tu firma con el dedo (celular) o el mouse (computador).</p>
+            <SignaturePad ref={padRef} />
+            <div className="toolbar">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => padRef.current?.clear()}
+              >
+                Borrar
+              </button>
+              <button type="button" onClick={handleSign} disabled={submitting}>
+                {submitting ? "Firmando..." : "Firmar y enviar"}
+              </button>
+            </div>
+            {error && <div className="error-box">{error}</div>}
           </div>
-          {error && <div className="error-box">{error}</div>}
         </div>
       )}
     </main>

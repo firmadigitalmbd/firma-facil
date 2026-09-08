@@ -48,6 +48,12 @@ export async function GET(
       );
     }
 
+    const { data: legalTexts } = await supabase
+      .from("legal_texts")
+      .select("data_consent_text, signature_consent_text")
+      .eq("id", 1)
+      .single();
+
     return NextResponse.json({
       document: {
         originalFilename: doc.original_filename,
@@ -59,6 +65,8 @@ export async function GET(
         boxHeight: doc.box_height,
         signedAt: doc.signed_at,
         status: doc.status,
+        dataConsentText: legalTexts?.data_consent_text || "",
+        signatureConsentText: legalTexts?.signature_consent_text || "",
       },
       fileUrl: signedUrlData.signedUrl,
     });

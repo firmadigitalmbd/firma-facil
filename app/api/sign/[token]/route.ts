@@ -10,10 +10,17 @@ export async function POST(
   { params }: { params: { token: string } }
 ) {
   try {
-    const { signaturePngBase64 } = await req.json();
+    const { signaturePngBase64, dataConsentAccepted, signatureConsentAccepted } =
+      await req.json();
     if (!signaturePngBase64) {
       return NextResponse.json(
         { error: "Falta la firma." },
+        { status: 400 }
+      );
+    }
+    if (!dataConsentAccepted || !signatureConsentAccepted) {
+      return NextResponse.json(
+        { error: "Debes aceptar los dos consentimientos antes de firmar." },
         { status: 400 }
       );
     }
@@ -60,6 +67,15 @@ export async function POST(
       height: doc.box_height,
     });
 
+    const { data: legalTexts } = await supabase
+      .from("legal_texts")
+      .select("data_consent_text, signature_consent_text")
+      .eq("id", 1)
+      .single();
+
+    const signerIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() || null;
+
     const signedPath = `signed/${doc.token}-${sanitize(doc.original_filename)}`;
 
     const { error: uploadError } = await supabase.storage
@@ -82,6 +98,9 @@ export async function POST(
         storage_path_signed: signedPath,
         signed_at: new Date().toISOString(),
         status: "signed",
+        consent_data_text: legalTexts?.data_consent_text || null,
+        consent_signature_text: legalTexts?.signature_consent_text || null,
+        signer_ip: signerIp,
       })
       .eq("token", params.token);
 

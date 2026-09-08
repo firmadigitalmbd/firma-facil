@@ -18,6 +18,29 @@ export type SignatureBox = {
 
 const PAGE_WIDTH = 560;
 
+const corner = {
+  width: 14,
+  height: 14,
+  borderRadius: "50%",
+  background: "#2563eb",
+  border: "2px solid #fff",
+  boxShadow: "0 0 0 1px #2563eb",
+};
+const edge = {
+  background: "#2563eb",
+  opacity: 0.6,
+};
+const RESIZE_HANDLE_STYLES = {
+  topLeft: { ...corner, marginLeft: -7, marginTop: -7 },
+  topRight: { ...corner, marginRight: -7, marginTop: -7 },
+  bottomLeft: { ...corner, marginLeft: -7, marginBottom: -7 },
+  bottomRight: { ...corner, marginRight: -7, marginBottom: -7 },
+  top: { ...edge, height: 4, marginTop: -2 },
+  bottom: { ...edge, height: 4, marginBottom: -2 },
+  left: { ...edge, width: 4, marginLeft: -2 },
+  right: { ...edge, width: 4, marginRight: -2 },
+};
+
 export default function PdfSignaturePlacer({
   file,
   onChange,
@@ -81,6 +104,9 @@ export default function PdfSignaturePlacer({
           size={{ width: box.width, height: box.height }}
           position={{ x: box.x, y: box.y }}
           bounds="parent"
+          minWidth={40}
+          minHeight={24}
+          resizeHandleStyles={RESIZE_HANDLE_STYLES}
           onDragStop={(_e, d) => {
             const next = { ...box, x: d.x, y: d.y };
             setBox(next);
