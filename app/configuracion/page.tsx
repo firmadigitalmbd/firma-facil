@@ -66,8 +66,6 @@ export default function ConfiguracionPage() {
         antes de firmar, sin tocar Supabase.
       </p>
 
-      <LogoutButton />
-
       {loading ? (
         <p>Cargando...</p>
       ) : (
@@ -111,7 +109,8 @@ export default function ConfiguracionPage() {
           {error && <div className="error-box">{error}</div>}
           {saved && <div className="success-box">Cambios guardados correctamente.</div>}
 
-          <div className="toolbar">
+          <div className="bottom-toolbar">
+            <LogoutButton />
             <button type="button" onClick={handleSave} disabled={saving}>
               {saving ? "Guardando..." : "Guardar cambios"}
             </button>

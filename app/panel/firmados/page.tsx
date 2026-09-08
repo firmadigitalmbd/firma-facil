@@ -121,8 +121,6 @@ export default function DocumentosFirmadosPage() {
         permanente.
       </p>
 
-      <LogoutButton />
-
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
@@ -237,6 +235,10 @@ export default function DocumentosFirmadosPage() {
             )}
           </>
         )}
+      </div>
+
+      <div className="bottom-toolbar">
+        <LogoutButton />
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import SideMenu from "@/components/SideMenu";
 
 export const metadata = {
   title: "Más Baratas Droguerías - Firma de documentos",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <SideMenu />
+        {children}
+      </body>
     </html>
   );
 }

@@ -64,8 +64,6 @@ export default function InformesPage() {
         Filtra los documentos firmados por rango de fechas y descárgalos como Excel.
       </p>
 
-      <LogoutButton />
-
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
@@ -124,6 +122,10 @@ export default function InformesPage() {
             </tbody>
           </table>
         )}
+      </div>
+
+      <div className="bottom-toolbar">
+        <LogoutButton />
       </div>
     </main>
   );

@@ -118,8 +118,6 @@ export default function PanelPage() {
         Aquí puedes ver el estado de todos los documentos que has enviado para firma.
       </p>
 
-      <LogoutButton />
-
       {storage && (
         <div className="card">
           <div className="toolbar" style={{ justifyContent: "space-between" }}>
@@ -268,6 +266,10 @@ export default function PanelPage() {
             )}
           </>
         )}
+      </div>
+
+      <div className="bottom-toolbar">
+        <LogoutButton />
       </div>
     </main>
   );

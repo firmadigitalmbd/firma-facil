@@ -7,7 +7,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button type="button" className="secondary logout-fab" onClick={handleLogout}>
+    <button type="button" className="secondary" onClick={handleLogout}>
       Cerrar sesión
     </button>
   );

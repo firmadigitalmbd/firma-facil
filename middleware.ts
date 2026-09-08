@@ -10,6 +10,7 @@ const PUBLIC_PREFIXES = [
   "/api/return",
   "/login",
   "/api/login",
+  "/api/whoami",
   "/logo.jpg",
   "/icon",
   "/favicon",
@@ -21,9 +22,11 @@ function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
-// Recalcula el mismo token HMAC que genera /api/login, usando Web Crypto
-// (la API de Node "crypto" no está disponible en el runtime de middleware).
-async function expectedSessionToken(secret: string) {
+// La cookie tiene forma "payload.firma". No hace falta decodificar el
+// payload aquí (eso lo hace /api/whoami con Node "crypto"); solo hay que
+// confirmar que la firma es válida, usando Web Crypto (la API de Node
+// "crypto" no está disponible en el runtime de middleware).
+async function hmacHex(secret: string, message: string) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -32,10 +35,18 @@ async function expectedSessionToken(secret: string) {
     false,
     ["sign"]
   );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("authenticated"));
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(message));
   return Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+async function isValidSession(cookieValue: string | undefined, secret: string) {
+  if (!cookieValue) return false;
+  const [payload, sig] = cookieValue.split(".");
+  if (!payload || !sig) return false;
+  const expected = await hmacHex(secret, payload);
+  return sig === expected;
 }
 
 export async function middleware(req: NextRequest) {
@@ -54,9 +65,8 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const expected = await expectedSessionToken(pass);
 
-  if (token === expected) {
+  if (await isValidSession(token, pass)) {
     return NextResponse.next();
   }
 

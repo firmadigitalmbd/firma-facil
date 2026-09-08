@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import type { SignatureBox } from "@/components/PdfSignaturePlacer";
 import LogoutButton from "@/components/LogoutButton";
 
@@ -85,27 +84,8 @@ export default function HomePage() {
 
   return (
     <main className="page">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.jpg" alt="Más Baratas Droguerías" className="brand-logo" />
       <h1>Más Baratas Droguerías - Firma de documentos</h1>
       <p className="module-caption">Sube un documento, ubica la firma y envíalo para firma.</p>
-
-      <div className="hub-buttons">
-        <Link href="/panel" className="btn-link">
-          Ver todos
-        </Link>
-        <Link href="/panel/firmados" className="btn-link">
-          Firmados
-        </Link>
-        <Link href="/configuracion" className="btn-link">
-          Config.
-        </Link>
-        <Link href="/informes" className="btn-link">
-          Informes
-        </Link>
-      </div>
-
-      <LogoutButton />
 
       <form onSubmit={handleSubmit}>
         <div className="card">
@@ -175,7 +155,8 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="toolbar">
+        <div className="bottom-toolbar">
+          <LogoutButton />
           <button type="submit" disabled={loading}>
             {loading ? "Enviando..." : "Enviar para firma"}
           </button>
