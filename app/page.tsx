@@ -62,6 +62,7 @@ export default function HomePage() {
       }
 
       setSuccessUrl(data.signUrl);
+      if (data.warning) setError(data.warning);
       setFile(null);
       setBox(null);
       setName("");

@@ -70,6 +70,7 @@ export default function FirmarPage({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo firmar el documento.");
+      if (data.warning) setError(data.warning);
       setDone(true);
     } catch (err: any) {
       setError(err.message);
@@ -118,9 +119,12 @@ export default function FirmarPage({
       </div>
 
       {alreadySigned ? (
-        <div className="success-box">
-          Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
-        </div>
+        <>
+          <div className="success-box">
+            Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
+          </div>
+          {error && <div className="error-box">{error}</div>}
+        </>
       ) : (
         <div className="card">
           <h2>Tu firma</h2>
