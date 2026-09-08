@@ -10,29 +10,20 @@ type DocRow = {
   recipient_name: string;
   recipient_cedula: string;
   recipient_email: string;
-  token: string;
-  opened_at: string | null;
   signed_at: string | null;
   status: "sent" | "opened" | "signed" | "returned";
-  return_reason: string | null;
-};
-
-const STATUS_LABEL: Record<DocRow["status"], string> = {
-  sent: "Enviado",
-  opened: "Abierto",
-  signed: "Firmado",
-  returned: "Devuelto",
 };
 
 const PAGE_SIZE = 10;
 
-export default function PanelPage() {
+export default function DocumentosFirmadosPage() {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [deletingId, setDeletingId] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     load();
@@ -41,42 +32,15 @@ export default function PanelPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch("/api/documents");
+      const res = await fetch("/api/documents", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo cargar la lista.");
-      setDocs(data.documents);
+      setDocs((data.documents as DocRow[]).filter((d) => d.status === "signed"));
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar este documento? Esta acción no se puede deshacer.")) {
-      return;
-    }
-    setError("");
-    setDeletingId(id);
-    try {
-      const res = await fetch("/api/documents", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [id] }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "No se pudo eliminar el documento.");
-      setDocs((prev) => prev.filter((d) => d.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setDeletingId("");
-    }
-  }
-
-  async function handleLogout() {
-    await fetch("/api/logout", { method: "POST" });
-    window.location.href = "/login";
   }
 
   const filteredDocs = useMemo(() => {
@@ -96,19 +60,63 @@ export default function PanelPage() {
     currentPage * PAGE_SIZE
   );
 
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllOnPage() {
+    const allSelected = pageDocs.every((d) => selected.has(d.id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      pageDocs.forEach((d) => (allSelected ? next.delete(d.id) : next.add(d.id)));
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    if (selected.size === 0) return;
+    if (
+      !confirm(
+        `¿Eliminar ${selected.size} documento(s) firmado(s)? Esta acción no se puede deshacer y borra tanto el registro como los archivos.`
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/documents", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected), allowSigned: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo eliminar.");
+      setDocs((prev) => prev.filter((d) => !selected.has(d.id)));
+      setSelected(new Set());
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <main className="page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
-        <h1>Documentos enviados</h1>
-        <div className="toolbar" style={{ marginTop: 0 }}>
-          <Link href="/">← Enviar nuevo documento</Link>
-          <Link href="/panel/firmados">Documentos firmados</Link>
-          <Link href="/configuracion">Configuración</Link>
-          <button type="button" className="secondary" onClick={handleLogout}>
-            Cerrar sesión
-          </button>
-        </div>
+        <h1>Documentos firmados</h1>
+        <Link href="/panel">← Volver al panel</Link>
       </div>
+      <p className="hint">
+        Aquí puedes borrar documentos ya firmados para liberar espacio de almacenamiento. Al
+        borrarlos se elimina el registro y los archivos (original y firmado) de forma
+        permanente.
+      </p>
 
       {error && <div className="error-box">{error}</div>}
 
@@ -132,19 +140,37 @@ export default function PanelPage() {
         {loading ? (
           <p>Cargando...</p>
         ) : docs.length === 0 ? (
-          <p>Todavía no has enviado ningún documento.</p>
+          <p>Todavía no hay documentos firmados.</p>
         ) : filteredDocs.length === 0 ? (
           <p>No se encontraron documentos que coincidan con la búsqueda.</p>
         ) : (
           <>
+            <div className="toolbar" style={{ justifyContent: "space-between" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400 }}>
+                <input
+                  type="checkbox"
+                  checked={pageDocs.length > 0 && pageDocs.every((d) => selected.has(d.id))}
+                  onChange={toggleAllOnPage}
+                />
+                Seleccionar todos en esta página
+              </label>
+              <button
+                type="button"
+                disabled={selected.size === 0 || deleting}
+                onClick={handleBulkDelete}
+              >
+                {deleting
+                  ? "Eliminando..."
+                  : `Borrar seleccionados (${selected.size})`}
+              </button>
+            </div>
+
             <table>
               <thead>
                 <tr>
+                  <th></th>
                   <th>Documento</th>
                   <th>Firmante</th>
-                  <th>Estado</th>
-                  <th>Enviado</th>
-                  <th>Abierto</th>
                   <th>Firmado</th>
                   <th></th>
                 </tr>
@@ -152,6 +178,13 @@ export default function PanelPage() {
               <tbody>
                 {pageDocs.map((d) => (
                   <tr key={d.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(d.id)}
+                        onChange={() => toggle(d.id)}
+                      />
+                    </td>
                     <td>{d.original_filename}</td>
                     <td>
                       {d.recipient_name}
@@ -160,44 +193,13 @@ export default function PanelPage() {
                         CC {d.recipient_cedula} · {d.recipient_email}
                       </span>
                     </td>
-                    <td>
-                      <span className={`status-badge status-${d.status}`}>
-                        {STATUS_LABEL[d.status]}
-                      </span>
-                      {d.status === "returned" && d.return_reason && (
-                        <div className="hint" style={{ maxWidth: 220 }}>
-                          {d.return_reason}
-                        </div>
-                      )}
-                    </td>
-                    <td>{formatDate(d.created_at)}</td>
-                    <td>{formatDate(d.opened_at)}</td>
                     <td>{formatDate(d.signed_at)}</td>
                     <td>
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        {d.status === "signed" && (
-                          <>
-                            <a
-                              href={`/api/admin/download/${d.id}?view=1`}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Ver
-                            </a>
-                            <a href={`/api/admin/download/${d.id}`}>Descargar</a>
-                          </>
-                        )}
-                        {d.status !== "signed" && (
-                          <button
-                            type="button"
-                            className="secondary"
-                            style={{ padding: "4px 10px", fontSize: 13 }}
-                            disabled={deletingId === d.id}
-                            onClick={() => handleDelete(d.id)}
-                          >
-                            {deletingId === d.id ? "Eliminando..." : "Eliminar"}
-                          </button>
-                        )}
+                        <a href={`/api/admin/download/${d.id}?view=1`} target="_blank" rel="noreferrer">
+                          Ver
+                        </a>
+                        <a href={`/api/admin/download/${d.id}`}>Descargar</a>
                       </div>
                     </td>
                   </tr>

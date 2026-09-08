@@ -64,12 +64,24 @@ label {
 
 input[type="text"],
 input[type="email"],
+input[type="password"],
 input[type="file"] {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 15px;
+}
+
+.config-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  margin-top: 8px;
+  resize: vertical;
 }
 
 button {
@@ -291,4 +303,62 @@ td {
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #fff5f6 0%, #ffe3e7 50%, #fff5f6 100%);
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  animation: login-card-in 0.5s ease-out;
+}
+
+.login-card h1 {
+  margin: 0 0 4px;
+}
+
+.login-card form {
+  text-align: left;
+  margin-top: 20px;
+}
+
+.login-logo {
+  max-width: 180px;
+  height: auto;
+  margin: 0 auto 20px;
+  display: block;
+  animation: login-logo-pulse 3s ease-in-out infinite;
+}
+
+@keyframes login-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes login-logo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
 }

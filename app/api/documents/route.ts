@@ -130,44 +130,60 @@ export async function GET() {
   }
 }
 
-// Borra un documento sin firmar (registro + archivo original en Storage).
-// Solo accesible por el admin (esta ruta exacta está protegida por el
+// Borra uno o varios documentos (registro + archivos en Storage). Solo
+// accesible por el admin (esta ruta exacta está protegida por el
 // middleware, a diferencia de /api/documents/[token] que es pública).
+// Por defecto no borra documentos ya firmados; el módulo de "Documentos
+// firmados" pasa allowSigned:true a propósito para liberar espacio.
 export async function DELETE(req: NextRequest) {
   try {
-    const { id } = await req.json();
-    if (!id) {
+    const { ids, id, allowSigned } = await req.json();
+    const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
+
+    if (targetIds.length === 0) {
       return NextResponse.json({ error: "Falta el id del documento." }, { status: 400 });
     }
 
     const supabase = getSupabaseAdmin();
-    const { data: doc, error: fetchError } = await supabase
+    const { data: docs, error: fetchError } = await supabase
       .from("documents")
-      .select("id, status, storage_path_original")
-      .eq("id", id)
-      .single();
+      .select("id, status, storage_path_original, storage_path_signed")
+      .in("id", targetIds);
 
-    if (fetchError || !doc) {
-      return NextResponse.json({ error: "Documento no encontrado." }, { status: 404 });
+    if (fetchError) {
+      return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    if (doc.status === "signed") {
+    const toDelete = (docs || []).filter((d) => allowSigned || d.status !== "signed");
+
+    if (toDelete.length === 0) {
       return NextResponse.json(
-        { error: "No se puede eliminar un documento ya firmado." },
+        { error: "No se puede eliminar: los documentos seleccionados ya están firmados." },
         { status: 400 }
       );
     }
 
-    if (doc.storage_path_original) {
-      await supabase.storage.from(DOCUMENTS_BUCKET).remove([doc.storage_path_original]);
+    const paths = toDelete.flatMap((d) =>
+      [d.storage_path_original, d.storage_path_signed].filter(Boolean)
+    ) as string[];
+
+    if (paths.length > 0) {
+      await supabase.storage.from(DOCUMENTS_BUCKET).remove(paths);
     }
 
-    const { error: deleteError } = await supabase.from("documents").delete().eq("id", id);
+    const { error: deleteError } = await supabase
+      .from("documents")
+      .delete()
+      .in(
+        "id",
+        toDelete.map((d) => d.id)
+      );
+
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, deleted: toDelete.length });
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Error inesperado." },

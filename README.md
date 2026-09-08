@@ -82,7 +82,7 @@ git push -u origin main
 
 ## Cómo se usa
 
-1. Entra a tu URL (te va a pedir el usuario/clave que pusiste en `ADMIN_USER` / `ADMIN_PASSWORD`).
+1. Entra a tu URL (te va a mostrar una pantalla de login con el usuario/clave que pusiste en `ADMIN_USER` / `ADMIN_PASSWORD`).
 2. Sube el PDF, arrastra el recuadro azul a donde debe ir la firma (y ajusta su tamaño con la esquina), llena el nombre, cédula y correo de quien firma, y dale **Enviar para firma**.
 3. La persona recibe un correo con un botón para abrir y firmar el documento. En cuanto lo abre, queda registrado en el panel (`/panel`, el enlace "Ver documentos enviados").
 4. La persona ve el documento completo (puede pasar páginas) y ve el recuadro de firma marcado sobre el documento. Debe aceptar los dos checks legales (tratamiento de datos y validez de la firma electrónica) y luego tocar el recuadro para dibujar su firma.
@@ -96,6 +96,13 @@ Los dos textos que se muestran como checks antes de firmar (tratamiento de datos
 1. Entra a tu proyecto en Supabase → **Table Editor** → tabla `legal_texts`.
 2. Edita la única fila (columnas `data_consent_text` y `signature_consent_text`) con el texto que necesites.
 3. Los cambios aplican de inmediato a los próximos documentos que se envíen — no hace falta redesplegar nada.
+
+También puedes editarlos desde la propia app, en **Configuración** (enlace en el panel).
+
+### Otras pantallas
+
+- **`/panel/firmados`** — lista solo los documentos ya firmados, con buscador, selección múltiple y borrado en lote (para liberar espacio en Supabase Storage). Borrar un documento aquí es permanente.
+- **`/configuracion`** — edita los tres textos legales sin tocar Supabase.
 
 **Importante:** el texto de ejemplo que trae el proyecto es solo un borrador de referencia (menciona la Ley 1581 de 2012, el Decreto 1377 de 2013, la Ley 527 de 1999 y el Decreto 2364 de 2012). No es asesoría legal — revísalo con un abogado antes de usarlo en documentos reales, y reemplaza `[NOMBRE DE LA EMPRESA/PERSONA]` por tu nombre o el de tu empresa.
 

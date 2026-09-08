@@ -51,6 +51,17 @@ function logoHtml() {
   return `<img src="${appUrl}/logo.jpg" alt="Más Baratas Droguerías" style="max-width:200px;margin-bottom:16px;" />`;
 }
 
+function confidentialityNoticeHtml(recipientName: string) {
+  return `
+  <p style="font-size: 11px; color: #999; margin-top: 32px; border-top: 1px solid #eee; padding-top: 12px;">
+    Este mensaje y su contenido son confidenciales y están dirigidos exclusivamente a
+    ${escapeHtml(recipientName)}. Si usted no es el destinatario, le informamos que su acceso,
+    uso, divulgación, distribución o copia de este mensaje está prohibido y puede acarrear
+    responsabilidad legal; por favor elimínelo de inmediato y notifique al remitente.
+  </p>
+  `;
+}
+
 export function linkEmailHtml(params: {
   recipientName: string;
   documentName: string;
@@ -74,6 +85,7 @@ export function linkEmailHtml(params: {
       Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
       <a href="${params.signUrl}">${params.signUrl}</a>
     </p>
+    ${confidentialityNoticeHtml(params.recipientName)}
   </div>
   `;
 }
@@ -95,6 +107,7 @@ export function signedEmailHtml(params: {
     <p style="font-size:13px;color:#666;">Documento: ${escapeHtml(
       params.documentName
     )}</p>
+    ${confidentialityNoticeHtml(params.recipientName)}
   </div>
   `;
 }

@@ -16,7 +16,7 @@ export async function embedSignatureInPdf(params: {
   width: number; // fracción 0-1
   height: number; // fracción 0-1
 }): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.load(params.pdfBytes);
+  const pdfDoc = await PDFDocument.load(params.pdfBytes, { ignoreEncryption: true });
   const pages = pdfDoc.getPages();
   const pageIndex = Math.min(Math.max(params.page - 1, 0), pages.length - 1);
   const targetPage = pages[pageIndex];

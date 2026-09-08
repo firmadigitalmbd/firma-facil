@@ -88,7 +88,19 @@ export default function HomePage() {
       <img src="/logo.jpg" alt="Más Baratas Droguerías" className="brand-logo" />
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
         <h1>Más Baratas Droguerías - Firma de documentos</h1>
-        <Link href="/panel">Ver documentos enviados →</Link>
+        <div className="toolbar" style={{ marginTop: 0 }}>
+          <Link href="/panel">Ver documentos enviados →</Link>
+          <button
+            type="button"
+            className="secondary"
+            onClick={async () => {
+              await fetch("/api/logout", { method: "POST" });
+              window.location.href = "/login";
+            }}
+          >
+            Cerrar sesión
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -119,7 +131,7 @@ export default function HomePage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: María Pérez"
+            placeholder="Ej: Katalina Vanegas"
           />
           <label>Cédula</label>
           <input

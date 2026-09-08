@@ -51,6 +51,17 @@ export default function FirmarPage({
 
   useEffect(() => {
     load();
+    // Si el navegador restaura esta página desde su caché de "atrás/adelante"
+    // (bfcache), el estado quedaría congelado con datos viejos (por ejemplo,
+    // un documento ya devuelto mostrando todavía el formulario de firma).
+    // Forzamos una recarga real de los datos cada vez que eso pasa.
+    function onPageShow(e: PageTransitionEvent) {
+      if (e.persisted) {
+        load();
+      }
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
