@@ -100,6 +100,9 @@ export default function HomePage() {
         <Link href="/configuracion" className="btn-link">
           Config.
         </Link>
+        <Link href="/informes" className="btn-link">
+          Informes
+        </Link>
       </div>
 
       <LogoutButton />

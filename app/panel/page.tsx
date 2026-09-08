@@ -27,6 +27,8 @@ const STATUS_LABEL: Record<DocRow["status"], string> = {
 
 const PAGE_SIZE = 10;
 
+type StorageUsage = { usedBytes: number; limitBytes: number; percent: number };
+
 export default function PanelPage() {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +36,22 @@ export default function PanelPage() {
   const [deletingId, setDeletingId] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [storage, setStorage] = useState<StorageUsage | null>(null);
 
   useEffect(() => {
     load();
+    loadStorage();
   }, []);
+
+  async function loadStorage() {
+    try {
+      const res = await fetch("/api/admin/storage-usage", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok) setStorage(data);
+    } catch {
+      // El indicador de espacio es informativo; si falla, no bloquea la página.
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -105,6 +119,34 @@ export default function PanelPage() {
       </p>
 
       <LogoutButton />
+
+      {storage && (
+        <div className="card">
+          <div className="toolbar" style={{ justifyContent: "space-between" }}>
+            <strong>Espacio usado en Supabase Storage</strong>
+            <span>
+              {formatMB(storage.usedBytes)} MB de {formatMB(storage.limitBytes)} MB (
+              {storage.percent}%)
+            </span>
+          </div>
+          <div className="storage-bar">
+            <div
+              className={`storage-bar-fill${storage.percent >= 90 ? " storage-bar-danger" : ""}`}
+              style={{ width: `${storage.percent}%` }}
+            />
+          </div>
+          {storage.percent >= 90 && (
+            <div className="toolbar">
+              <span className="hint" style={{ marginTop: 0 }}>
+                Te estás quedando sin espacio.
+              </span>
+              <Link href="/panel/firmados" className="btn-link">
+                Liberar espacio →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <div className="error-box">{error}</div>}
 
@@ -229,6 +271,10 @@ export default function PanelPage() {
       </div>
     </main>
   );
+}
+
+function formatMB(bytes: number) {
+  return Math.round(bytes / (1024 * 1024));
 }
 
 function formatDate(value: string | null) {

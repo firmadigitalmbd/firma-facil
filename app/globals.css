@@ -65,6 +65,7 @@ label {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="date"],
 input[type="file"] {
   width: 100%;
   padding: 10px 12px;
@@ -346,13 +347,52 @@ td {
   margin-bottom: 16px;
 }
 
+.storage-bar {
+  background: #e5e7eb;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.storage-bar-danger {
+  background: #991b1b;
+}
+
 .login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(135deg, #fff5f6 0%, #ffe3e7 50%, #fff5f6 100%);
+  background: linear-gradient(
+    -45deg,
+    #fff5f6,
+    #ffe3e7,
+    #ffd2d9,
+    #fff5f6
+  );
+  background-size: 400% 400%;
+  animation: login-bg-shift 12s ease infinite;
+}
+
+@keyframes login-bg-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .login-card {
