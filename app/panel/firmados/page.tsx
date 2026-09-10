@@ -168,6 +168,7 @@ export default function DocumentosFirmadosPage() {
               </button>
             </div>
 
+            <div className="table-scroll">
             <table>
               <thead>
                 <tr>
@@ -209,6 +210,7 @@ export default function DocumentosFirmadosPage() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {totalPages > 1 && (
               <div className="toolbar">

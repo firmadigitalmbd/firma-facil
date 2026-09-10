@@ -203,6 +203,10 @@ button.secondary {
   color: #374151;
 }
 
+.table-scroll {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

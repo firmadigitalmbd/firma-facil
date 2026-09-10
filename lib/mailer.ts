@@ -70,7 +70,7 @@ export function linkEmailHtml(params: {
 }) {
   const expiryNotice = params.expiresAt
     ? `<p style="font-size: 13px; color: #92400e; background:#fff7ed; border:1px solid #fcd9a8; padding:10px 14px; border-radius:8px;">
-        Este enlace vence el <strong>${formatExpiry(params.expiresAt)}</strong>. Después de esa fecha ya no vas a poder abrirlo.
+        Este documento vence el <strong>${formatExpiry(params.expiresAt)}</strong>. Después de esa fecha ya no vas a poder firmarlo.
       </p>`
     : "";
 

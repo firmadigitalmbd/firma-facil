@@ -208,6 +208,7 @@ export default function PanelPage() {
           <p>No se encontraron documentos que coincidan con la búsqueda.</p>
         ) : (
           <>
+            <div className="table-scroll">
             <table>
               <thead>
                 <tr>
@@ -296,6 +297,7 @@ export default function PanelPage() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {totalPages > 1 && (
               <div className="toolbar">

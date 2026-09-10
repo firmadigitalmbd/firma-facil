@@ -59,7 +59,7 @@ export async function POST(
 
     if (doc.expires_at && new Date(doc.expires_at) < new Date()) {
       return NextResponse.json(
-        { error: "Este enlace ya venció y no está disponible." },
+        { error: "Este documento ya venció y no está disponible." },
         { status: 410 }
       );
     }

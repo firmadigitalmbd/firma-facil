@@ -39,6 +39,10 @@ export default function HomePage() {
       setError("Completa el nombre, la cédula y el correo del firmante.");
       return;
     }
+    if (expireDays === "") {
+      setError("Indica los días de vencimiento del enlace (0 = indefinido).");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -135,13 +139,13 @@ export default function HomePage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="correo@ejemplo.com"
           />
-          <label>Días para que expire el enlace (vacío = indefinido)</label>
+          <label>Días para que expire el enlace</label>
           <input
             type="text"
             inputMode="numeric"
+            required
             value={expireDays}
             onChange={(e) => setExpireDays(e.target.value.replace(/\D/g, ""))}
-            placeholder="Ej: 2"
           />
           <p className="hint">{expiryPreviewText(expireDays)}</p>
         </div>
@@ -180,13 +184,13 @@ export default function HomePage() {
 
 function expiryPreviewText(expireDays: string) {
   const days = Number(expireDays);
-  if (!days || days <= 0) {
-    return "El enlace no va a expirar (queda disponible indefinidamente hasta que se firme).";
+  if (expireDays === "" || !days || days <= 0) {
+    return "Si pones 0, el documento no tendrá fecha límite de vencimiento (queda disponible indefinidamente hasta que se firme).";
   }
   const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   const formatted = expiresAt.toLocaleString("es-CO", {
     dateStyle: "long",
     timeStyle: "short",
   });
-  return `El enlace vencerá el ${formatted}.`;
+  return `El documento vencerá el ${formatted}.`;
 }

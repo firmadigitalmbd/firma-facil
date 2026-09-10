@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const boxWidth = Number(formData.get("boxWidth") || 0.2);
     const boxHeight = Number(formData.get("boxHeight") || 0.08);
     const expireDaysRaw = formData.get("expireDays");
-    const expireDays = expireDaysRaw ? Number(expireDaysRaw) : 0;
+    const expireDays = Math.max(0, Math.floor(Number(expireDaysRaw) || 0));
     const expiresAt =
       expireDays > 0
         ? new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString()

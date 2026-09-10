@@ -54,7 +54,7 @@ export async function GET(
 
     if (doc.expires_at && new Date(doc.expires_at) < new Date()) {
       return json(
-        { error: "Este enlace ya venció y no está disponible." },
+        { error: "Este documento ya venció y no está disponible." },
         410
       );
     }
