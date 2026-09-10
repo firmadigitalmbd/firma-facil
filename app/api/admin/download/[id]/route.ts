@@ -36,7 +36,7 @@ export async function GET(
       .from(DOCUMENTS_BUCKET)
       .createSignedUrl(
         doc.storage_path_signed,
-        60,
+        300,
         view
           ? undefined
           : { download: doc.original_filename.replace(/\.pdf$/i, "") + "-firmado.pdf" }

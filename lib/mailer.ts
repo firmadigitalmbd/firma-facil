@@ -66,7 +66,14 @@ export function linkEmailHtml(params: {
   recipientName: string;
   documentName: string;
   signUrl: string;
+  expiresAt?: string | null;
 }) {
+  const expiryNotice = params.expiresAt
+    ? `<p style="font-size: 13px; color: #92400e; background:#fff7ed; border:1px solid #fcd9a8; padding:10px 14px; border-radius:8px;">
+        Este enlace vence el <strong>${formatExpiry(params.expiresAt)}</strong>. Después de esa fecha ya no vas a poder abrirlo.
+      </p>`
+    : "";
+
   return `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
     ${logoHtml()}
@@ -81,6 +88,7 @@ export function linkEmailHtml(params: {
         Ver y firmar documento
       </a>
     </p>
+    ${expiryNotice}
     <p style="font-size: 13px; color: #666;">
       Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
       <a href="${params.signUrl}">${params.signUrl}</a>
@@ -88,6 +96,13 @@ export function linkEmailHtml(params: {
     ${confidentialityNoticeHtml(params.recipientName)}
   </div>
   `;
+}
+
+function formatExpiry(iso: string) {
+  return new Date(iso).toLocaleString("es-CO", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
 }
 
 export function signedEmailHtml(params: {

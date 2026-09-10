@@ -46,8 +46,22 @@ export async function POST(
       );
     }
 
+    if (doc.status === "cancelled") {
+      return NextResponse.json(
+        { error: "Quien te envió este documento lo canceló y el enlace ya no está disponible." },
+        { status: 410 }
+      );
+    }
+
     if (doc.signed_at) {
       return NextResponse.json({ ok: true, alreadySigned: true });
+    }
+
+    if (doc.expires_at && new Date(doc.expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: "Este enlace ya venció y no está disponible." },
+        { status: 410 }
+      );
     }
 
     // Descarga el PDF original

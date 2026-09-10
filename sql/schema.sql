@@ -42,7 +42,19 @@ alter table documents add column if not exists signer_ip text;
 -- status pasa a 'returned'; el enlace de firma deja de funcionar.
 alter table documents add column if not exists return_reason text;
 alter table documents add column if not exists returned_at timestamptz;
--- status: sent | opened | signed | returned
+
+-- Columna para cuando tú (el admin) cancelas el documento desde el panel
+-- antes de que lo firmen. status pasa a 'cancelled'; el enlace de firma
+-- deja de funcionar igual que con 'returned', pero distinguiendo quién
+-- lo detuvo (el firmante vs. quien lo envió).
+alter table documents add column if not exists cancelled_at timestamptz;
+-- status: sent | opened | signed | returned | cancelled
+
+-- Vencimiento opcional del enlace de firma. Si tiene valor y ya pasó esa
+-- fecha, el enlace deja de funcionar aunque el status siga en 'sent' u
+-- 'opened' (el vencimiento se calcula al momento de abrir el enlace, no
+-- se guarda como status aparte). NULL = el enlace nunca expira.
+alter table documents add column if not exists expires_at timestamptz;
 
 -- Textos legales que se muestran como checks antes de firmar. Es una tabla
 -- de una sola fila (id = 1) para que puedas editar el texto desde

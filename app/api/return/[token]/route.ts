@@ -33,7 +33,9 @@ export async function POST(
       );
     }
 
-    if (doc.signed_at || doc.status === "returned") {
+    const expired = doc.expires_at && new Date(doc.expires_at) < new Date();
+
+    if (doc.signed_at || doc.status === "returned" || doc.status === "cancelled" || expired) {
       return NextResponse.json(
         { error: "Este documento ya no se puede devolver." },
         { status: 400 }

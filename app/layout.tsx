@@ -17,6 +17,17 @@ export default function RootLayout({
       <body>
         <SideMenu />
         {children}
+        <footer className="app-footer">
+          Desarrollado por <strong>NOVA STUDIO</strong> · Todos los derechos
+          reservados © 2024 ·{" "}
+          <a
+            href="https://wa.me/573193034610"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Contacto
+          </a>
+        </footer>
       </body>
     </html>
   );

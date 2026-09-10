@@ -20,6 +20,12 @@ export async function POST(req: NextRequest) {
     const boxY = Number(formData.get("boxY") || 0);
     const boxWidth = Number(formData.get("boxWidth") || 0.2);
     const boxHeight = Number(formData.get("boxHeight") || 0.08);
+    const expireDaysRaw = formData.get("expireDays");
+    const expireDays = expireDaysRaw ? Number(expireDaysRaw) : 0;
+    const expiresAt =
+      expireDays > 0
+        ? new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
 
     if (!file || !recipientName || !recipientCedula || !recipientEmail) {
       return NextResponse.json(
@@ -62,6 +68,7 @@ export async function POST(req: NextRequest) {
       box_height: boxHeight,
       token,
       status: "sent",
+      expires_at: expiresAt,
     });
 
     if (insertError) {
@@ -82,6 +89,7 @@ export async function POST(req: NextRequest) {
           recipientName,
           documentName: file.name,
           signUrl,
+          expiresAt,
         }),
       });
     } catch (mailErr: any) {
@@ -113,7 +121,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("documents")
       .select(
-        "id, created_at, original_filename, recipient_name, recipient_cedula, recipient_email, token, opened_at, signed_at, status, return_reason"
+        "id, created_at, original_filename, recipient_name, recipient_cedula, recipient_email, token, opened_at, signed_at, status, return_reason, expires_at"
       )
       .order("created_at", { ascending: false });
 

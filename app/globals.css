@@ -106,6 +106,21 @@ button.secondary {
   color: #1a1a1a;
 }
 
+.btn-cancel-doc {
+  background: #fff7ed;
+  color: #92400e;
+  border: 1px solid #fcd9a8;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-cancel-doc:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-link {
   background: var(--brand);
   color: #fff;
@@ -176,6 +191,16 @@ button.secondary {
 .status-returned {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.status-cancelled {
+  background: #f3e8d9;
+  color: #92400e;
+}
+
+.status-expired {
+  background: #e5e7eb;
+  color: #374151;
 }
 
 table {
@@ -555,6 +580,30 @@ td {
   font-weight: 600;
   cursor: pointer;
   padding: 4px 6px;
+}
+
+.app-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 18px 16px 22px;
+  border-top: 1px solid #eee;
+  margin-top: 24px;
+}
+
+.app-footer strong {
+  color: #6b7280;
+}
+
+.app-footer a {
+  color: #6b7280;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-footer a:hover {
+  color: var(--brand-dark);
+  text-decoration: underline;
 }
 
 .login-logo {

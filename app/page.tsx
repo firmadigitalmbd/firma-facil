@@ -17,6 +17,7 @@ export default function HomePage() {
   const [name, setName] = useState("");
   const [cedula, setCedula] = useState("");
   const [email, setEmail] = useState("");
+  const [expireDays, setExpireDays] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sentTo, setSentTo] = useState("");
@@ -51,6 +52,7 @@ export default function HomePage() {
       formData.append("boxY", String(box.yFrac));
       formData.append("boxWidth", String(box.widthFrac));
       formData.append("boxHeight", String(box.heightFrac));
+      formData.append("expireDays", expireDays);
 
       const res = await fetch("/api/documents", {
         method: "POST",
@@ -75,6 +77,7 @@ export default function HomePage() {
       setName("");
       setCedula("");
       setEmail("");
+      setExpireDays("");
     } catch (err: any) {
       setError(err.message || "Ocurrió un error inesperado.");
     } finally {
@@ -132,6 +135,15 @@ export default function HomePage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="correo@ejemplo.com"
           />
+          <label>Días para que expire el enlace (vacío = indefinido)</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={expireDays}
+            onChange={(e) => setExpireDays(e.target.value.replace(/\D/g, ""))}
+            placeholder="Ej: 2"
+          />
+          <p className="hint">{expiryPreviewText(expireDays)}</p>
         </div>
 
         {error && (
@@ -164,4 +176,17 @@ export default function HomePage() {
       </form>
     </main>
   );
+}
+
+function expiryPreviewText(expireDays: string) {
+  const days = Number(expireDays);
+  if (!days || days <= 0) {
+    return "El enlace no va a expirar (queda disponible indefinidamente hasta que se firme).";
+  }
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const formatted = expiresAt.toLocaleString("es-CO", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
+  return `El enlace vencerá el ${formatted}.`;
 }

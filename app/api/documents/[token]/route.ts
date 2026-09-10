@@ -35,12 +35,26 @@ export async function GET(
       );
     }
 
+    if (doc.status === "cancelled") {
+      return json(
+        { error: "Este enlace ya no está disponible: quien te lo envió canceló este documento." },
+        410
+      );
+    }
+
     if (doc.status === "signed") {
       return json(
         {
           error:
             "Este enlace ya no está disponible: el documento ya fue firmado. Revisa tu correo para ver la copia firmada.",
         },
+        410
+      );
+    }
+
+    if (doc.expires_at && new Date(doc.expires_at) < new Date()) {
+      return json(
+        { error: "Este enlace ya venció y no está disponible." },
         410
       );
     }

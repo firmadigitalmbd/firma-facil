@@ -14,15 +14,25 @@ type DocRow = {
   token: string;
   opened_at: string | null;
   signed_at: string | null;
-  status: "sent" | "opened" | "signed" | "returned";
+  status: "sent" | "opened" | "signed" | "returned" | "cancelled";
   return_reason: string | null;
+  expires_at: string | null;
 };
+
+function isExpired(d: DocRow) {
+  return (
+    (d.status === "sent" || d.status === "opened") &&
+    !!d.expires_at &&
+    new Date(d.expires_at) < new Date()
+  );
+}
 
 const STATUS_LABEL: Record<DocRow["status"], string> = {
   sent: "Enviado",
   opened: "Abierto",
   signed: "Firmado",
   returned: "Devuelto",
+  cancelled: "Cancelado",
 };
 
 const PAGE_SIZE = 10;
@@ -34,6 +44,7 @@ export default function PanelPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState("");
+  const [cancelingId, setCancelingId] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [storage, setStorage] = useState<StorageUsage | null>(null);
@@ -86,6 +97,30 @@ export default function PanelPage() {
       setError(err.message);
     } finally {
       setDeletingId("");
+    }
+  }
+
+  async function handleCancel(id: string) {
+    if (
+      !confirm(
+        "¿Cancelar este documento? El enlace que se envió por correo dejará de funcionar."
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setCancelingId(id);
+    try {
+      const res = await fetch(`/api/admin/cancel/${id}`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo cancelar el documento.");
+      setDocs((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status: "cancelled" } : d))
+      );
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCancelingId("");
     }
   }
 
@@ -197,14 +232,25 @@ export default function PanelPage() {
                       </span>
                     </td>
                     <td>
-                      <span className={`status-badge status-${d.status}`}>
-                        {STATUS_LABEL[d.status]}
+                      <span
+                        className={`status-badge status-${
+                          isExpired(d) ? "expired" : d.status
+                        }`}
+                      >
+                        {isExpired(d) ? "Vencido" : STATUS_LABEL[d.status]}
                       </span>
                       {d.status === "returned" && d.return_reason && (
                         <div className="hint" style={{ maxWidth: 220 }}>
                           {d.return_reason}
                         </div>
                       )}
+                      {!isExpired(d) &&
+                        d.expires_at &&
+                        (d.status === "sent" || d.status === "opened") && (
+                          <div className="hint" style={{ maxWidth: 220 }}>
+                            Vence: {formatDate(d.expires_at)}
+                          </div>
+                        )}
                     </td>
                     <td>{formatDate(d.created_at)}</td>
                     <td>{formatDate(d.opened_at)}</td>
@@ -222,6 +268,16 @@ export default function PanelPage() {
                             </a>
                             <a href={`/api/admin/download/${d.id}`}>Descargar</a>
                           </>
+                        )}
+                        {(d.status === "sent" || d.status === "opened") && !isExpired(d) && (
+                          <button
+                            type="button"
+                            className="btn-cancel-doc"
+                            disabled={cancelingId === d.id}
+                            onClick={() => handleCancel(d.id)}
+                          >
+                            {cancelingId === d.id ? "Cancelando..." : "Cancelar doc."}
+                          </button>
                         )}
                         {d.status !== "signed" && (
                           <button
