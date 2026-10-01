@@ -165,7 +165,12 @@ export async function POST(
       });
     } catch (mailErr: any) {
       // El documento ya quedó firmado y guardado; el correo es
-      // secundario en este punto.
+      // secundario en este punto. Se deja registrado en los logs del
+      // servidor (Vercel) aunque quien firma no se fije en el aviso.
+      console.error(
+        `Fallo el correo de documento firmado (token ${params.token}):`,
+        mailErr.message
+      );
       return NextResponse.json({
         ok: true,
         warning: `El documento se firmó pero el correo no se pudo enviar: ${mailErr.message}`,

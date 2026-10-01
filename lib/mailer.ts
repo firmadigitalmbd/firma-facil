@@ -38,13 +38,25 @@ export async function sendMail(opts: {
   const fromName = process.env.MAIL_FROM_NAME || "Más Baratas Droguerías";
   const fromEmail = process.env.MAIL_FROM_EMAIL || process.env.SMTP_USER;
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: opts.to,
     subject: opts.subject,
     html: opts.html,
     attachments: opts.attachments,
   });
+
+  // Cuando se manda a varios destinatarios a la vez, el SMTP puede aceptar
+  // la conexión y aun así rechazar uno de los destinatarios puntuales sin
+  // que transporter.sendMail lance un error (el envío "general" se da por
+  // exitoso). Si eso pasa, lo convertimos en un error explícito para que
+  // quien llamó a sendMail se entere y lo muestre como advertencia, en vez
+  // de que el destinatario rechazado se quede sin el correo en silencio.
+  if (info.rejected && info.rejected.length > 0) {
+    throw new Error(
+      `El servidor de correo rechazó a: ${info.rejected.map(String).join(", ")}`
+    );
+  }
 }
 
 function logoHtml() {
