@@ -17,6 +17,8 @@ function getTransporter() {
     port,
     secure: port === 465,
     auth: { user, pass },
+    connectionTimeout: 20000,
+    socketTimeout: 20000,
   });
 }
 

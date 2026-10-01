@@ -4,6 +4,13 @@ import { embedSignatureInPdf } from "@/lib/pdf";
 import { sendMail, signedEmailHtml } from "@/lib/mailer";
 
 export const runtime = "nodejs";
+// Firmar sube el archivo original, incrusta la firma, sube el firmado,
+// actualiza la base de datos y manda el correo con el PDF adjunto, todo
+// en una sola petición. Con el límite por defecto de Vercel (10s en plan
+// Hobby) un documento grande o un correo lento pueden cortar la función
+// a mitad de camino, dejando el documento firmado pero sin registrar o
+// sin enviar el correo. Se sube el límite al máximo permitido.
+export const maxDuration = 60;
 
 export async function POST(
   req: NextRequest,

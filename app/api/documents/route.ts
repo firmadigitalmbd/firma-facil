@@ -5,6 +5,10 @@ import { sendMail, linkEmailHtml } from "@/lib/mailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Subir el archivo y mandar el correo en la misma petición puede pasarse
+// del límite por defecto de Vercel (10s en plan Hobby); ver la misma nota
+// en app/api/sign/[token]/route.ts.
+export const maxDuration = 60;
 
 // Crea un documento: sube el PDF original, guarda el registro en la
 // base de datos y envía el correo con el enlace de firma.
