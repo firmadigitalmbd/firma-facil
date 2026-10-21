@@ -172,3 +172,23 @@ create index if not exists app_sessions_user_idx on app_sessions (user_id);
 alter table app_users enable row level security;
 alter table app_sessions enable row level security;
 -- Sin políticas: solo el backend (service role key) puede leer o escribir.
+
+-- =====================================================================
+-- Restablecer contraseña por enlace (solo administradoras)
+-- =====================================================================
+-- Correo del usuario. Solo se usa para que una administradora recupere su
+-- acceso con un enlace; los demás usuarios los restablece la administradora.
+alter table app_users add column if not exists email text;
+
+-- Enlaces de restablecimiento: de un solo uso, vencen a la hora. Solo se
+-- guarda el hash del token, igual que con las sesiones.
+create table if not exists password_resets (
+  token_hash text primary key,
+  user_id uuid not null references app_users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+create index if not exists password_resets_user_idx on password_resets (user_id);
+
+alter table password_resets enable row level security;

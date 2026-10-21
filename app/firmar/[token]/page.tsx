@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { SignaturePadHandle } from "@/components/SignaturePad";
+import { Loading, Mascot } from "@/components/Mascots";
 import {
   ACCEPTED_IMAGE_LABEL,
   ACCEPTED_IMAGE_TYPES,
@@ -185,7 +186,7 @@ export default function FirmarPage({
   if (loading) {
     return (
       <main className="page">
-        <p>Cargando documento...</p>
+        <Loading>Cargando documento...</Loading>
       </main>
     );
   }
@@ -193,6 +194,9 @@ export default function FirmarPage({
   if (error && !doc) {
     return (
       <main className="page">
+        <div className="empty-state">
+          <Mascot kind="thermometer" size={108} mood="sad" motion="sway" />
+        </div>
         <div className="error-box">{error}</div>
       </main>
     );
@@ -206,6 +210,9 @@ export default function FirmarPage({
     return (
       <main className="page">
         <h1>Documento devuelto</h1>
+        <div className="empty-state">
+          <Mascot kind="bandage" size={108} motion="wiggle" />
+        </div>
         <div className="success-box">
           Devolviste este documento sin firmar. Ya avisamos a quien te lo envió. Gracias por tu
           observación.
@@ -243,6 +250,8 @@ export default function FirmarPage({
 
       {alreadySigned ? (
         <div className="success-box">
+          <Mascot kind="cross" size={64} motion="bounce" />
+          <br />
           Este documento ya fue firmado. Se envió una copia por correo a ambas partes. ¡Gracias!
         </div>
       ) : (

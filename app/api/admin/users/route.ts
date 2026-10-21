@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   getSessionUser,
   hashPassword,
+  validateEmail,
   validateNewPassword,
   validateUsername,
 } from "@/lib/auth";
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PUBLIC_COLUMNS = "id, username, role, active, must_change_password, created_at";
+const PUBLIC_COLUMNS = "id, username, email, role, active, must_change_password, created_at";
 
 async function requireAdmin(req: NextRequest) {
   const user = await getSessionUser(req);
@@ -59,10 +60,17 @@ export async function POST(req: NextRequest) {
     const invalid = validateNewPassword(body?.password);
     if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
 
+    const rawEmail = String(body?.email || "").trim().toLowerCase();
+    if (rawEmail) {
+      const invalidEmail = validateEmail(rawEmail);
+      if (invalidEmail) return NextResponse.json({ error: invalidEmail }, { status: 400 });
+    }
+
     const { data, error } = await getSupabaseAdmin()
       .from("app_users")
       .insert({
         username,
+        email: rawEmail || null,
         password_hash: await hashPassword(body.password),
         role,
         must_change_password: true,

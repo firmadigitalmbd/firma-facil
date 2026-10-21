@@ -31,7 +31,12 @@ export default function SideMenu() {
       .catch(() => setUsername(null));
   }, []);
 
-  if (pathname === "/login" || pathname.startsWith("/firmar")) {
+  if (
+    pathname === "/login" ||
+    pathname.startsWith("/firmar") ||
+    pathname.startsWith("/olvide-clave") ||
+    pathname.startsWith("/restablecer")
+  ) {
     return null;
   }
 

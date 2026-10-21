@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import { EmptyState, Loading } from "@/components/Mascots";
 
 type DocRow = {
   id: string;
@@ -97,9 +98,9 @@ export default function InformesPage() {
         </div>
 
         {loading ? (
-          <p>Cargando...</p>
+          <Loading />
         ) : filtered.length === 0 ? (
-          <p style={{ marginTop: 16 }}>No hay documentos firmados en ese rango.</p>
+          <EmptyState kind="cross" mood="surprised">No hay documentos firmados en ese rango.</EmptyState>
         ) : (
           <table style={{ marginTop: 16 }}>
             <thead>

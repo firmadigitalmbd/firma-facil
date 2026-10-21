@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useState, FormEvent } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { MascotRow } from "@/components/Mascots";
 
 export default function LoginPage() {
   return (
@@ -43,6 +45,7 @@ function LoginForm() {
 
   return (
     <main className="login-page">
+     <div className="login-stack">
       <div className="login-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.jpg" alt="Más Baratas Droguerías" className="login-logo" />
@@ -76,8 +79,13 @@ function LoginForm() {
           <button type="submit" disabled={loading} style={{ width: "100%", marginTop: 20 }}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
+          <p style={{ textAlign: "center", marginTop: 14, fontSize: 14 }}>
+            <Link href="/olvide-clave">¿Olvidaste tu contraseña?</Link>
+          </p>
         </form>
       </div>
+      <MascotRow kinds={["syringe", "bottle", "capsule", "cross", "thermometer"]} size={58} />
+     </div>
     </main>
   );
 }

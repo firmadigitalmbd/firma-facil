@@ -3,10 +3,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import { Loading } from "@/components/Mascots";
 
 type UserRow = {
   id: string;
   username: string;
+  email: string | null;
   role: "admin" | "user";
   active: boolean;
   must_change_password: boolean;
@@ -33,6 +35,11 @@ export default function UsuariosPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<"user" | "admin">("user");
   const [creating, setCreating] = useState(false);
+
+  const [emailUser, setEmailUser] = useState<UserRow | null>(null);
+  const [emailValue, setEmailValue] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const [resetUser, setResetUser] = useState<UserRow | null>(null);
   const [resetPassword, setResetPassword] = useState("");
@@ -114,6 +121,26 @@ export default function UsuariosPage() {
     }
   }
 
+  async function handleSaveEmail(e: FormEvent) {
+    e.preventDefault();
+    if (!emailUser) return;
+    setEmailError("");
+    setSavingEmail(true);
+    try {
+      await patchUser(emailUser.id, { email: emailValue });
+      setNotice(
+        emailValue.trim()
+          ? `Correo guardado para "${emailUser.username}". Con él podrá recuperar su contraseña por enlace.`
+          : `Se quitó el correo de "${emailUser.username}".`
+      );
+      setEmailUser(null);
+    } catch (err: any) {
+      setEmailError(err.message);
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
   async function handleReset(e: FormEvent) {
     e.preventDefault();
     if (!resetUser) return;
@@ -160,6 +187,13 @@ export default function UsuariosPage() {
         rol de administradora. Siempre debe quedar al menos una administradora activa.
       </p>
 
+      {!loading &&
+        users.some((u) => u.id === currentUserId && u.role === "admin" && !u.email) && (
+          <div className="error-box" style={{ background: "#fff7ed", color: "#92400e" }}>
+            Aún no tienes un correo registrado. Toca <strong>Correo</strong> en tu fila para
+            guardarlo: sin él no podrás recuperar tu contraseña por enlace si la olvidas.
+          </div>
+        )}
       {error && <div className="error-box">{error}</div>}
       {notice && <div className="success-box">{notice}</div>}
 
@@ -207,7 +241,7 @@ export default function UsuariosPage() {
       <div className="card">
         <h2>Usuarios registrados</h2>
         {loading ? (
-          <p>Cargando...</p>
+          <Loading />
         ) : (
           <div className="table-scroll">
             <table>
@@ -228,6 +262,7 @@ export default function UsuariosPage() {
                       <td>
                         {u.username}
                         {isMe && <span className="hint"> (tú)</span>}
+                        {u.email && <div className="hint">{u.email}</div>}
                         {u.must_change_password && (
                           <div className="hint">Pendiente de cambiar contraseña</div>
                         )}
@@ -240,6 +275,21 @@ export default function UsuariosPage() {
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {u.role === "admin" && (
+                            <button
+                              type="button"
+                              className="secondary"
+                              style={{ padding: "4px 10px", fontSize: 13 }}
+                              disabled={busy}
+                              onClick={() => {
+                                setEmailUser(u);
+                                setEmailValue(u.email || "");
+                                setEmailError("");
+                              }}
+                            >
+                              Correo
+                            </button>
+                          )}
                           {u.active && !isMe && (
                             <button
                               type="button"
@@ -303,6 +353,41 @@ export default function UsuariosPage() {
           </div>
         )}
       </div>
+
+      {emailUser && (
+        <div className="modal-backdrop" onClick={() => !savingEmail && setEmailUser(null)}>
+          <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={handleSaveEmail}>
+            <h2>Correo de {emailUser.username}</h2>
+            <p className="hint">
+              A este correo se envía el enlace para recuperar la contraseña. Déjalo vacío para
+              quitarlo.
+            </p>
+            <label>Correo electrónico</label>
+            <input
+              type="text"
+              inputMode="email"
+              value={emailValue}
+              onChange={(e) => setEmailValue(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+            {emailError && <div className="error-box">{emailError}</div>}
+            <div className="toolbar">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setEmailUser(null)}
+                disabled={savingEmail}
+              >
+                Cancelar
+              </button>
+              <button type="submit" disabled={savingEmail}>
+                {savingEmail ? "Guardando..." : "Guardar correo"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {resetUser && (
         <div className="modal-backdrop" onClick={() => !resetting && setResetUser(null)}>

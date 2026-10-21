@@ -119,6 +119,37 @@ function formatExpiry(iso: string) {
   });
 }
 
+export function passwordResetEmailHtml(params: {
+  username: string;
+  resetUrl: string;
+  minutes: number;
+}) {
+  return `
+  <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+    ${logoHtml()}
+    <h2 style="margin-bottom: 8px;">Restablecer tu contraseña</h2>
+    <p>Hola ${escapeHtml(params.username)},</p>
+    <p>Recibimos una solicitud para restablecer tu contraseña de acceso a Firma Fácil.</p>
+    <p style="margin: 24px 0;">
+      <a href="${params.resetUrl}"
+         style="background:#e4032e;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
+        Elegir una contraseña nueva
+      </a>
+    </p>
+    <p style="font-size: 13px; color: #92400e; background:#fff7ed; border:1px solid #fcd9a8; padding:10px 14px; border-radius:8px;">
+      Este enlace sirve una sola vez y vence en ${params.minutes} minutos.
+    </p>
+    <p style="font-size: 13px; color: #666;">
+      Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
+      <a href="${params.resetUrl}">${params.resetUrl}</a>
+    </p>
+    <p style="font-size: 13px; color: #666;">
+      Si tú no lo pediste, ignora este correo: tu contraseña actual sigue funcionando.
+    </p>
+  </div>
+  `;
+}
+
 export function signedEmailHtml(params: {
   recipientName: string;
   documentName: string;

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import SideMenu from "@/components/SideMenu";
+import PageDecor from "@/components/PageDecor";
 
 export const metadata = {
   title: "Más Baratas Droguerías - Firma de documentos",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <PageDecor />
         <SideMenu />
         {children}
         <footer className="app-footer">

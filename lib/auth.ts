@@ -63,6 +63,36 @@ export function stripSpaces(value: string) {
   return value.replace(/\s+/g, "");
 }
 
+export function validateEmail(email: unknown): string | null {
+  if (
+    typeof email !== "string" ||
+    email.length > 120 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
+    return "Escribe un correo válido.";
+  }
+  return null;
+}
+
+export const RESET_TTL_MINUTES = 60;
+export const RESET_COOLDOWN_SECONDS = 60;
+
+// Crea un enlace de restablecimiento (reemplaza cualquiera anterior del
+// mismo usuario) y devuelve el token en claro, que solo viaja por correo.
+export async function createPasswordResetToken(userId: string): Promise<string> {
+  const supabase = getSupabaseAdmin();
+  await supabase.from("password_resets").delete().eq("user_id", userId);
+
+  const token = randomBytes(32).toString("base64url");
+  const { error } = await supabase.from("password_resets").insert({
+    token_hash: hashToken(token),
+    user_id: userId,
+    expires_at: new Date(Date.now() + RESET_TTL_MINUTES * 60 * 1000).toISOString(),
+  });
+  if (error) throw new Error(`No se pudo crear el enlace: ${error.message}`);
+  return token;
+}
+
 export function validateNewPassword(password: unknown): string | null {
   if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
     return `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;

@@ -13,8 +13,14 @@ export function getSupabaseAdmin() {
     );
   }
 
+  // Next.js guarda en caché las respuestas de fetch; sin esto, consultas
+  // como "¿esta sesión sigue activa?" o "¿este usuario sigue siendo
+  // administrador?" podían devolver datos viejos.
   return createClient(url, key, {
     auth: { persistSession: false },
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }
 

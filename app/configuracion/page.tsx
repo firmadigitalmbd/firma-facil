@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import { Loading } from "@/components/Mascots";
 
 export default function ConfiguracionPage() {
   const [dataConsentText, setDataConsentText] = useState("");
@@ -67,7 +68,7 @@ export default function ConfiguracionPage() {
       </p>
 
       {loading ? (
-        <p>Cargando...</p>
+        <Loading />
       ) : (
         <>
           <div className="card">

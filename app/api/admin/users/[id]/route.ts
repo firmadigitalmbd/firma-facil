@@ -4,12 +4,13 @@ import {
   deleteUserSessions,
   getSessionUser,
   hashPassword,
+  validateEmail,
   validateNewPassword,
 } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-const PUBLIC_COLUMNS = "id, username, role, active, must_change_password, created_at";
+const PUBLIC_COLUMNS = "id, username, email, role, active, must_change_password, created_at";
 
 function fail(error: string, status: number) {
   return NextResponse.json({ error }, { status });
@@ -41,8 +42,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (nextActive === false && target.id === me.id) {
       return fail("No puedes inactivar tu propio usuario.", 400);
     }
-    if (nextRole === "admin" && !nextActive) {
-      return fail("Un usuario inactivo no puede ser administrador.", 400);
+    // Se puede inactivar a una administradora (su rol queda guardado por si
+    // vuelve), pero no ascender a administradora a alguien inactivo.
+    if (body?.role === "admin" && target.role !== "admin" && !nextActive) {
+      return fail("Reactiva al usuario antes de asignarle el rol de administradora.", 400);
     }
 
     // Siempre debe quedar al menos una administradora activa.
@@ -70,6 +73,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         update.failed_attempts = 0;
         update.locked_until = null;
       }
+    }
+
+    if (body?.email !== undefined) {
+      const email = String(body.email || "").trim().toLowerCase();
+      if (email) {
+        const invalidEmail = validateEmail(email);
+        if (invalidEmail) return fail(invalidEmail, 400);
+      }
+      update.email = email || null;
     }
 
     if (body?.newPassword !== undefined) {

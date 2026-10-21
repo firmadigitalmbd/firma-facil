@@ -697,3 +697,171 @@ td {
     transform: scale(1.04);
   }
 }
+
+/* ---------- Muñequitos de droguería ---------- */
+.mascot {
+  display: inline-block;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.mascot svg {
+  display: block;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12));
+}
+
+.mascot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-blink 5s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.mascot-float {
+  animation: mascot-float 3.6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.mascot-bounce {
+  animation: mascot-bounce 1.3s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.mascot-wiggle {
+  animation: mascot-wiggle 2.8s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.mascot-sway {
+  animation: mascot-sway 4.2s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes mascot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes mascot-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  40% {
+    transform: translateY(-16px) scale(0.97, 1.04);
+  }
+  60% {
+    transform: translateY(-16px) scale(0.97, 1.04);
+  }
+  92% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+}
+
+@keyframes mascot-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-7deg);
+  }
+  75% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes mascot-sway {
+  0%,
+  100% {
+    transform: translateX(-6px) rotate(-4deg);
+  }
+  50% {
+    transform: translateX(6px) rotate(4deg);
+  }
+}
+
+@keyframes mascot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+.empty-state,
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 8px 10px;
+  text-align: center;
+}
+
+.empty-state-text {
+  margin: 0;
+  color: #6b7280;
+  font-size: 15px;
+  max-width: 420px;
+}
+
+.mascot-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.login-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Márgenes laterales con muñequitos: solo en pantallas anchas, donde
+   esos espacios quedan vacíos (el contenido mide 900px). */
+.page-decor {
+  display: none;
+}
+
+@media (min-width: 1180px) {
+  .page-decor {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-decor-item {
+    position: absolute;
+    opacity: 0.95;
+  }
+
+  .page-decor-left {
+    left: calc((100vw - 900px) / 4 - 45px);
+  }
+
+  .page-decor-right {
+    right: calc((100vw - 900px) / 4 - 45px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot,
+  .mascot-eye {
+    animation: none !important;
+  }
+}

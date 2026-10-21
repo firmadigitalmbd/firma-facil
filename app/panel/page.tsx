@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import { EmptyState, Loading } from "@/components/Mascots";
 
 type DocRow = {
   id: string;
@@ -201,11 +202,11 @@ export default function PanelPage() {
         </form>
 
         {loading ? (
-          <p>Cargando...</p>
+          <Loading />
         ) : docs.length === 0 ? (
-          <p>Todavía no has enviado ningún documento.</p>
+          <EmptyState kind="bottle">Todavía no has enviado ningún documento. ¡Crea el primero desde el menú!</EmptyState>
         ) : filteredDocs.length === 0 ? (
-          <p>No se encontraron documentos que coincidan con la búsqueda.</p>
+          <EmptyState kind="thermometer" mood="surprised">No se encontraron documentos que coincidan con la búsqueda.</EmptyState>
         ) : (
           <>
             <div className="table-scroll">
