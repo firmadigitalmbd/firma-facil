@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { SignaturePadHandle } from "@/components/SignaturePad";
+import {
+  ACCEPTED_IMAGE_LABEL,
+  ACCEPTED_IMAGE_TYPES,
+  imageFileToSignaturePng,
+} from "@/lib/signatureImage";
 
 const SignaturePad = dynamic(() => import("@/components/SignaturePad"), {
   ssr: false,
@@ -46,6 +51,9 @@ export default function FirmarPage({
   const [returning, setReturning] = useState(false);
   const [dataConsent, setDataConsent] = useState(false);
   const [signatureConsent, setSignatureConsent] = useState(false);
+  const [signMode, setSignMode] = useState<"drawn" | "image">("drawn");
+  const [imagePng, setImagePng] = useState("");
+  const [processingImage, setProcessingImage] = useState(false);
   const padRef = useRef<SignaturePadHandle | null>(null);
   const consentCardRef = useRef<HTMLDivElement>(null);
 
@@ -91,21 +99,49 @@ export default function FirmarPage({
     setShowModal(true);
   }
 
+  async function handleImageSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Se limpia para que volver a elegir el mismo archivo dispare el cambio.
+    e.target.value = "";
+    if (!file) return;
+    setError("");
+    setImagePng("");
+    setProcessingImage(true);
+    try {
+      setImagePng(await imageFileToSignaturePng(file));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setProcessingImage(false);
+    }
+  }
+
   async function handleSign() {
     setError("");
-    if (!padRef.current || padRef.current.isEmpty()) {
-      setError("Dibuja tu firma antes de continuar.");
-      return;
+    let signatureDataUrl = "";
+    if (signMode === "drawn") {
+      if (!padRef.current || padRef.current.isEmpty()) {
+        setError("Dibuja tu firma antes de continuar.");
+        return;
+      }
+      signatureDataUrl = padRef.current.toDataUrl();
+    } else {
+      if (!imagePng) {
+        setError("Sube una imagen de tu firma antes de continuar.");
+        return;
+      }
+      signatureDataUrl = imagePng;
     }
 
     setSubmitting(true);
     try {
-      const signatureDataUrl = padRef.current.toDataUrl();
       const res = await fetch(`/api/sign/${params.token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           signaturePngBase64: signatureDataUrl,
+          signatureMethod: signMode,
+          signaturePixelRatio: signMode === "drawn" ? window.devicePixelRatio || 1 : 1,
           dataConsentAccepted: dataConsent,
           signatureConsentAccepted: signatureConsent,
         }),
@@ -261,16 +297,76 @@ export default function FirmarPage({
         <div className="modal-backdrop" onClick={() => !submitting && setShowModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h2>Tu firma</h2>
-            <p className="hint">Dibuja tu firma con el dedo (celular) o el mouse (computador).</p>
-            <SignaturePad onReady={(handle) => (padRef.current = handle)} />
-            <div className="toolbar">
+            <div className="sign-mode-toggle">
               <button
                 type="button"
-                className="secondary"
-                onClick={() => padRef.current?.clear()}
+                className={signMode === "drawn" ? "" : "secondary"}
+                onClick={() => {
+                  setError("");
+                  setSignMode("drawn");
+                }}
+                disabled={submitting}
               >
-                Borrar
+                Dibujar firma
               </button>
+              <button
+                type="button"
+                className={signMode === "image" ? "" : "secondary"}
+                onClick={() => {
+                  setError("");
+                  setSignMode("image");
+                }}
+                disabled={submitting}
+              >
+                Subir imagen
+              </button>
+            </div>
+
+            {signMode === "drawn" ? (
+              <>
+                <p className="hint">
+                  Dibuja tu firma con el dedo (celular) o el mouse (computador).
+                </p>
+                <SignaturePad onReady={(handle) => (padRef.current = handle)} />
+              </>
+            ) : (
+              <>
+                <p className="hint">
+                  Solo se permiten imágenes ({ACCEPTED_IMAGE_LABEL}). Usa una foto de tu firma
+                  en tinta oscura sobre papel blanco; el fondo se quita automáticamente.
+                </p>
+                <label className={`file-pick${processingImage || submitting ? " disabled" : ""}`}>
+                  <input
+                    type="file"
+                    accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                    onChange={handleImageSelected}
+                    disabled={processingImage || submitting}
+                  />
+                  {processingImage
+                    ? "Procesando imagen..."
+                    : imagePng
+                    ? "Cambiar imagen"
+                    : "Elegir imagen"}
+                </label>
+                {imagePng && (
+                  <div className="signature-preview">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imagePng} alt="Vista previa de tu firma" />
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="toolbar">
+              {signMode === "drawn" && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => padRef.current?.clear()}
+                >
+                  Borrar
+                </button>
+              )}
               <button
                 type="button"
                 className="secondary"
@@ -279,7 +375,7 @@ export default function FirmarPage({
               >
                 Cerrar
               </button>
-              <button type="button" onClick={handleSign} disabled={submitting}>
+              <button type="button" onClick={handleSign} disabled={submitting || processingImage}>
                 {submitting ? "Firmando..." : "Firmar y enviar"}
               </button>
             </div>

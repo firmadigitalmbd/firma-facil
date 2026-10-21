@@ -56,6 +56,10 @@ alter table documents add column if not exists cancelled_at timestamptz;
 -- se guarda como status aparte). NULL = el enlace nunca expira.
 alter table documents add column if not exists expires_at timestamptz;
 
+-- Cómo se firmó el documento: 'drawn' (dibujada en pantalla) o 'image'
+-- (imagen subida por el firmante). Queda como evidencia junto al resto.
+alter table documents add column if not exists signature_method text;
+
 -- Textos legales que se muestran como checks antes de firmar. Es una tabla
 -- de una sola fila (id = 1) para que puedas editar el texto desde
 -- Supabase > Table Editor > legal_texts, sin tocar código ni redesplegar.
@@ -129,3 +133,42 @@ alter table legal_texts enable row level security;
 alter table documents enable row level security;
 -- No se crean políticas (RLS activo = nadie puede leer/escribir directo desde el
 -- navegador con la clave pública; solo el backend con la service role key puede).
+
+-- =====================================================================
+-- Usuarios y sesiones de la app (reemplaza ADMIN_USER / ADMIN_PASSWORD)
+-- =====================================================================
+-- Las contraseñas se guardan cifradas (scrypt), nunca en texto simple.
+-- role: 'admin' (gestiona usuarios) | 'user'. active=false bloquea el
+-- ingreso y cierra sus sesiones. Si la tabla está vacía, la primera vez
+-- que alguien inicia sesión la app copia aquí los usuarios que haya en
+-- las variables ADMIN_USER / ADMIN_USER_2 (ver app/api/login/route.ts).
+create table if not exists app_users (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  username text not null,
+  username_key text generated always as (lower(username)) stored,
+  password_hash text not null,
+  role text not null default 'user' check (role in ('admin', 'user')),
+  active boolean not null default true,
+  must_change_password boolean not null default false,
+  failed_attempts int not null default 0,
+  locked_until timestamptz,
+  constraint app_users_username_no_spaces check (username !~ '\s')
+);
+
+create unique index if not exists app_users_username_key_idx on app_users (username_key);
+
+-- Una fila por sesión iniciada. La cookie guarda un token aleatorio; aquí
+-- solo queda su hash, así que borrar la fila cierra la sesión al instante.
+create table if not exists app_sessions (
+  token_hash text primary key,
+  user_id uuid not null references app_users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+create index if not exists app_sessions_user_idx on app_sessions (user_id);
+
+alter table app_users enable row level security;
+alter table app_sessions enable row level security;
+-- Sin políticas: solo el backend (service role key) puede leer o escribir.

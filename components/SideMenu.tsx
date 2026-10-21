@@ -12,21 +12,30 @@ const LINKS = [
   { href: "/configuracion", label: "Configuración" },
 ];
 
+const ADMIN_LINKS = [{ href: "/usuarios", label: "Usuarios" }];
+const ACCOUNT_LINKS = [{ href: "/cambiar-clave", label: "Cambiar contraseña" }];
+
 export default function SideMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/whoami", { cache: "no-store" })
       .then((res) => res.json())
-      .then((data) => setUsername(data.username))
+      .then((data) => {
+        setUsername(data.username);
+        setRole(data.role || null);
+      })
       .catch(() => setUsername(null));
   }, []);
 
   if (pathname === "/login" || pathname.startsWith("/firmar")) {
     return null;
   }
+
+  const links = [...LINKS, ...(role === "admin" ? ADMIN_LINKS : []), ...ACCOUNT_LINKS];
 
   return (
     <>
@@ -61,7 +70,7 @@ export default function SideMenu() {
 
         {username && <div className="side-menu-user">Sesión iniciada como {username}</div>}
 
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}

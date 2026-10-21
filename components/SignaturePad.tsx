@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import SignaturePadLib from "signature_pad";
+import { trimCanvasToPng } from "@/lib/signatureImage";
 
 export type SignaturePadHandle = {
   clear: () => void;
@@ -34,8 +35,10 @@ export default function SignaturePad({
       padRef.current?.clear();
     }
 
+    // Fondo transparente (el blanco visible lo da el CSS) para que la firma
+    // no tape el contenido del PDF y se pueda recortar al trazo.
     padRef.current = new SignaturePadLib(canvas, {
-      backgroundColor: "rgba(255,255,255,1)",
+      backgroundColor: "rgba(0,0,0,0)",
       penColor: "rgb(15,23,42)",
     });
 
@@ -45,7 +48,7 @@ export default function SignaturePad({
     onReady({
       clear: () => padRef.current?.clear(),
       isEmpty: () => padRef.current?.isEmpty() ?? true,
-      toDataUrl: () => padRef.current?.toDataURL("image/png") ?? "",
+      toDataUrl: () => (canvasRef.current && trimCanvasToPng(canvasRef.current)) || "",
     });
 
     return () => window.removeEventListener("resize", resize);

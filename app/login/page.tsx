@@ -32,8 +32,9 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo iniciar sesión.");
-      const next = searchParams.get("next") || "/";
-      window.location.href = next;
+      const requested = searchParams.get("next") || "/";
+      const safeNext = requested.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+      window.location.href = data.mustChangePassword ? "/cambiar-clave" : safeNext;
     } catch (err: any) {
       setError(err.message);
       setLoading(false);

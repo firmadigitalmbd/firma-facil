@@ -17,8 +17,15 @@ export async function POST(
   { params }: { params: { token: string } }
 ) {
   try {
-    const { signaturePngBase64, dataConsentAccepted, signatureConsentAccepted } =
-      await req.json();
+    const {
+      signaturePngBase64,
+      dataConsentAccepted,
+      signatureConsentAccepted,
+      signatureMethod,
+      signaturePixelRatio,
+    } = await req.json();
+    const method = signatureMethod === "image" ? "image" : "drawn";
+    const pixelRatio = Number(signaturePixelRatio) || 1;
     if (!signaturePngBase64) {
       return NextResponse.json(
         { error: "Falta la firma." },
@@ -93,6 +100,7 @@ export async function POST(
       y: doc.box_y,
       width: doc.box_width,
       height: doc.box_height,
+      pixelRatio,
     });
 
     const { data: legalTexts } = await supabase
@@ -129,6 +137,7 @@ export async function POST(
         consent_data_text: legalTexts?.data_consent_text || null,
         consent_signature_text: legalTexts?.signature_consent_text || null,
         signer_ip: signerIp,
+        signature_method: method,
       })
       .eq("token", params.token);
 

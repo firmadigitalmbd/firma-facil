@@ -15,6 +15,9 @@ export async function embedSignatureInPdf(params: {
   y: number; // fracción 0-1, desde arriba
   width: number; // fracción 0-1
   height: number; // fracción 0-1
+  // Píxeles de la imagen por cada píxel de pantalla con que se firmó (en
+  // pantallas retina el trazo dibujado trae 2 o 3 píxeles por cada uno).
+  pixelRatio?: number;
 }): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(params.pdfBytes, { ignoreEncryption: true });
   const pages = pdfDoc.getPages();
@@ -35,11 +38,19 @@ export async function embedSignatureInPdf(params: {
   const boxYPtFromTop = params.y * pageHeight;
   const boxYPt = pageHeight - boxYPtFromTop - boxHeightPt;
 
+  // La firma conserva su proporción y su tamaño original: solo se reduce
+  // si no cabe en el recuadro, nunca se agranda para llenarlo. Queda
+  // centrada en el espacio que sobre.
+  const ratio = Math.min(Math.max(params.pixelRatio || 1, 1), 4);
+  const natural = { width: pngImage.width / ratio, height: pngImage.height / ratio };
+  const scale = Math.min(1, boxWidthPt / natural.width, boxHeightPt / natural.height);
+  const fitted = { width: natural.width * scale, height: natural.height * scale };
+
   targetPage.drawImage(pngImage, {
-    x: boxXPt,
-    y: boxYPt,
-    width: boxWidthPt,
-    height: boxHeightPt,
+    x: boxXPt + (boxWidthPt - fitted.width) / 2,
+    y: boxYPt + (boxHeightPt - fitted.height) / 2,
+    width: fitted.width,
+    height: fitted.height,
   });
 
   return pdfDoc.save();
