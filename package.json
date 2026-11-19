@@ -18,11 +18,13 @@
     "react-dom": "^18.3.1",
     "react-pdf": "^7.7.3",
     "react-rnd": "^10.4.11",
-    "signature_pad": "^4.2.0"
+    "signature_pad": "^4.2.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
+    "@types/web-push": "^3.6.4",
     "typescript": "^5.5.4"
   }
 }

@@ -1,5 +1,5 @@
 import { randomBytes, createHash, scrypt as scryptCb, timingSafeEqual } from "crypto";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const SESSION_COOKIE = "ff_session";
@@ -154,6 +154,27 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
     mustChangePassword: !!u.must_change_password,
     tokenHash,
   };
+}
+
+// Defensa en profundidad: el middleware ya exige sesión, pero cada ruta
+// protegida la vuelve a validar para no depender de la lista de prefijos
+// públicos. Uso: const auth = await requireUser(req); if (auth.error) return auth.error;
+export async function requireUser(req: NextRequest, adminOnly = false) {
+  const user = await getSessionUser(req);
+  if (!user) {
+    return {
+      error: NextResponse.json({ error: "No has iniciado sesión." }, { status: 401 }),
+    };
+  }
+  if (adminOnly && user.role !== "admin") {
+    return {
+      error: NextResponse.json(
+        { error: "Solo la administradora puede hacer esto." },
+        { status: 403 }
+      ),
+    };
+  }
+  return { user };
 }
 
 export function sessionCookieOptions() {

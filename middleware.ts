@@ -14,6 +14,11 @@ const PUBLIC_PREFIXES = [
   "/olvide-clave",
   "/restablecer",
   "/api/password",
+  // Pantalla de marcación de empleados (entran solo con la cédula).
+  "/marcar",
+  "/api/marcar",
+  // Aviso automático de verificación (se protege con CRON_SECRET).
+  "/api/cron/",
   "/logo.jpg",
   "/icon",
   "/favicon",

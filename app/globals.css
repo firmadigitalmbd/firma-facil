@@ -194,6 +194,11 @@ button.secondary {
   color: #991b1b;
 }
 
+.status-pending {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 .status-cancelled {
   background: #f3e8d9;
   color: #92400e;

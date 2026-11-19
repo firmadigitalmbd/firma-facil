@@ -9,10 +9,13 @@ const LINKS = [
   { href: "/panel/firmados", label: "Firmados" },
   { href: "/panel", label: "Ver todos" },
   { href: "/informes", label: "Informes" },
-  { href: "/configuracion", label: "Configuración" },
 ];
 
-const ADMIN_LINKS = [{ href: "/usuarios", label: "Usuarios" }];
+const ADMIN_LINKS = [
+  { href: "/configuracion", label: "Configuración" },
+  { href: "/usuarios", label: "Usuarios" },
+  { href: "/asistencia", label: "Asistencia" },
+];
 const ACCOUNT_LINKS = [{ href: "/cambiar-clave", label: "Cambiar contraseña" }];
 
 export default function SideMenu() {
@@ -35,7 +38,8 @@ export default function SideMenu() {
     pathname === "/login" ||
     pathname.startsWith("/firmar") ||
     pathname.startsWith("/olvide-clave") ||
-    pathname.startsWith("/restablecer")
+    pathname.startsWith("/restablecer") ||
+    pathname.startsWith("/marcar")
   ) {
     return null;
   }

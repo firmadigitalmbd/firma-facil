@@ -1,0 +1,10 @@
+{
+  "name": "Asistencia - Más Baratas Droguerías",
+  "short_name": "Asistencia",
+  "start_url": "/marcar",
+  "scope": "/marcar",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e4032e",
+  "icons": [{ "src": "/logo.jpg", "sizes": "any", "type": "image/jpeg" }]
+}
